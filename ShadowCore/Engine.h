@@ -1,12 +1,11 @@
 #pragma once
 #include "ssi.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/rotate_vector.hpp>
-#include <glm/gtx/vector_angle.hpp>
 
 #include "Object.h"
+#include "Shader.h"
+#include "Texture.h"
+#include "Mesh.h"
+#include "Level.h"
 
 class EventHandler {
 public:
@@ -19,8 +18,11 @@ class EngineBase {
 public:
 	GLFWwindow* window;
 	std::unique_ptr<EventHandler> eventHandler = std::make_unique<EventHandler>();
+	std::unique_ptr<Level> level = std::make_unique<Level>("Level");
 
 	void Init();
+	void Add_Object(std::shared_ptr<Object> object);
+	virtual void PostInit() {};
 
 	virtual void PreRender() {};
 	virtual void PostRender() {};

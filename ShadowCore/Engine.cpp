@@ -13,7 +13,7 @@ void EngineBase::Init() {
 	window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
-		std::cout << "Failed to create GLFW window" << std::endl;
+		std::cout << "Failed to create window" << std::endl;
 		glfwTerminate();
 		return;
 	}
@@ -26,4 +26,8 @@ void EngineBase::Init() {
 		std::cout << "Failed to init GLEW!" << std::endl;
 		return;
 	}
+}
+
+void EngineBase::Add_Object(std::shared_ptr<Object> object) {
+	level->Add_Object(object);
 }

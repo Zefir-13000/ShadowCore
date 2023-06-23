@@ -1,11 +1,25 @@
 #pragma once
 // Standart Shadow Include
+#include <Windows.h>
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-#include <Windows.h>
 #include <vector>
 #include <cmath>
 #include <string>
+#include <fstream>
+#include <sstream>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/vector_angle.hpp>
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
+#include "Classes.h"

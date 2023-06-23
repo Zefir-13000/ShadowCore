@@ -1,5 +1,4 @@
 #pragma once
-#include "Classes.h"
 #include "ssi.h"
 
 constexpr int MAXLEN_OBJECT_NAME = 255;
@@ -8,7 +7,7 @@ class Object
 {
 public:
 	std::string name;
-	unsigned type = OBJECT;
+	ObjectTypes type = OBJECT;
 	Object() {
 		this->name = std::string("Object");
 	}
@@ -18,6 +17,6 @@ public:
 		else
 			this->name = std::string("Object");
 	}
-	~Object() {}
+	virtual ~Object() {}
 };
 
