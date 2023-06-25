@@ -9,6 +9,6 @@ private:
 public:
 	TextureTypes type = DIFFUSE;
 	Texture(std::string name, TextureTypes type);
-	void Bind(std::unique_ptr<Shader>& shader, int texNum);
+	void Bind(std::shared_ptr<Shader> shader, int texNum);
 };
 

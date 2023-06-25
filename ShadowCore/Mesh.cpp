@@ -9,7 +9,7 @@ Mesh::Mesh(std::vector<float>& vertices, RenderType render_type) {
 
     glBindVertexArray(VAO);
 
-    vertices_count = static_cast<unsigned int>(vertices.size());
+    vertices_count = vertices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) * vertices_count, vertices.data(), GL_STATIC_DRAW);
@@ -28,7 +28,7 @@ Mesh::Mesh(std::vector<float>& vertices, RenderType render_type) {
         glEnableVertexAttribArray(0);
     }
     else {
-        std::cerr << "INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
+        std::cerr << "ERROR::MESH::RENDER_TYPE - INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         Inited = false;
@@ -49,8 +49,8 @@ Mesh::Mesh(std::vector<float>& vertices, std::vector<unsigned int>& indices, Ren
 
     glBindVertexArray(VAO);
 
-    vertices_count = static_cast<unsigned int>(vertices.size());
-    indices_count = static_cast<unsigned int>(indices.size());
+    vertices_count = vertices.size();
+    indices_count = indices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) * vertices_count, vertices.data(), GL_STATIC_DRAW);
@@ -72,7 +72,7 @@ Mesh::Mesh(std::vector<float>& vertices, std::vector<unsigned int>& indices, Ren
         glEnableVertexAttribArray(0);
     }
     else {
-        std::cerr << "INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
+        std::cerr << "ERROR::MESH::RENDER_TYPE - INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         Inited = false;
@@ -94,7 +94,7 @@ Mesh::Mesh(std::string name, std::vector<float>& vertices, RenderType render_typ
 
     glBindVertexArray(VAO);
 
-    vertices_count = static_cast<unsigned int>(vertices.size());
+    vertices_count = vertices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) * vertices_count, vertices.data(), GL_STATIC_DRAW);
@@ -113,7 +113,7 @@ Mesh::Mesh(std::string name, std::vector<float>& vertices, RenderType render_typ
         glEnableVertexAttribArray(0);
     }
     else {
-        std::cerr << "INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
+        std::cerr << "ERROR::MESH::RENDER_TYPE - INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         Inited = false;
@@ -135,8 +135,8 @@ Mesh::Mesh(std::string name, std::vector<float>& vertices, std::vector<unsigned 
 
     glBindVertexArray(VAO);
 
-    vertices_count = static_cast<unsigned int>(vertices.size());
-    indices_count = static_cast<unsigned int>(indices.size());
+    vertices_count = vertices.size();
+    indices_count = indices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) * vertices_count, vertices.data(), GL_STATIC_DRAW);
@@ -158,7 +158,7 @@ Mesh::Mesh(std::string name, std::vector<float>& vertices, std::vector<unsigned 
         glEnableVertexAttribArray(0);
     }
     else {
-        std::cerr << "INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
+        std::cerr << "ERROR::MESH::RENDER_TYPE - INVALID RENDER TYPE (" << RenderTypeStr[render_type] << "). UNABLE TO LOAD MESH \"" << Mesh::name << "\"" << std::endl;
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         Inited = false;
@@ -170,26 +170,36 @@ Mesh::Mesh(std::string name, std::vector<float>& vertices, std::vector<unsigned 
     Inited = true;
 }
 
+void Mesh::SetShader(std::shared_ptr<Shader> shader)
+{
+    Mesh::render_shader = shader;
+}
+
 void Mesh::SetTextures(std::vector<std::shared_ptr<Texture>> textures) {
     Mesh::textures = textures;
 }
 
-void Mesh::Render(std::unique_ptr<Shader>& shader) {
-    if (Mesh::Inited) {
-        shader->Activate();
+void Mesh::Render() {
+    if (Mesh::Inited && Mesh::render_shader != nullptr) {
+        Mesh::render_shader->Activate();
         for (std::shared_ptr<Texture>& texture : textures) {
             if (texture->type == DIFFUSE)
-                texture->Bind(shader, 0);
+                texture->Bind(Mesh::render_shader, 0);
             else if (texture->type == SPECULAR)
-                texture->Bind(shader, 1);
+                texture->Bind(Mesh::render_shader, 1);
         }
+
+        Mesh::render_shader->setMat4("model", transform.model);
 
         glBindVertexArray(VAO);
         if (render_type == ELEMENT || render_type == ELEMENT_CUSTOM) {
             glDrawElements(GL_TRIANGLES, indices_count, GL_UNSIGNED_INT, 0);
         }
         else if (render_type == ARRAY || render_type == ARRAY_CUSTOM)
-            glDrawArrays(GL_TRIANGLES, 0, vertices_count); // Need replace to Vertex struct
+            glDrawArrays(GL_TRIANGLES, 0, 36); // Need replace to Vertex struct
         glBindVertexArray(0);
+    }
+    else if (Mesh::render_shader == nullptr) {
+        std::cerr << "ERROR::MESH::RENDER::SHADER - Mesh (" << Mesh::name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
     }
 }

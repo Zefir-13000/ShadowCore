@@ -42,12 +42,12 @@ Texture::Texture(std::string name, TextureTypes type) {
     }
     else
     {
-        std::cout << "Texture failed to load at path: " << name << std::endl;
+        std::cerr << "ERROR::TEXTURE::LOAD - Texture failed to load at path: " << name << std::endl;
         stbi_image_free(img);
     }
 }
 
-void Texture::Bind(std::unique_ptr<Shader>& shader, int texNum) {
+void Texture::Bind(std::shared_ptr<Shader> shader, int texNum) {
     shader->Activate();
     if (type == DIFFUSE)
         shader->setInt("has_diffuse_texture", 1);
