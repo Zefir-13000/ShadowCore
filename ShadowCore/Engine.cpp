@@ -1,25 +1,35 @@
 #include "Engine.h"
 
-EngineBase::EngineBase() {
-	Init();
-}
-
 void EngineBase::Init() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
-	if (window == NULL)
+	window.GLFW_window = glfwCreateWindow(1280, 720, "ShadowCore Engine", NULL, NULL);
+	window.width = 1280;
+	window.height = 720;
+	if (window.GLFW_window == NULL)
 	{
 		std::cout << "Failed to create window" << std::endl;
 		glfwTerminate();
 		return;
 	}
-	glfwMakeContextCurrent(window);
-	glfwSetWindowUserPointer(window, &eventHandler);
-	glfwSetFramebufferSizeCallback(window, &EventHandler::size_callback);
+	glfwMakeContextCurrent(window.GLFW_window);
+
+	glfwSetWindowUserPointer(window.GLFW_window, this);
+	glfwSetFramebufferSizeCallback(window.GLFW_window, [](GLFWwindow* window, int width, int height) {
+		EngineBase* engine = static_cast<EngineBase*>(glfwGetWindowUserPointer(window));
+		engine->window.width = width;
+		engine->window.height = height;
+
+		engine->level->main_cam->UpdateProjection(width, height);
+		for (std::shared_ptr<Camera> camera : engine->level->cameras) {
+			camera->UpdateProjection(width, height);
+		}
+
+		EventHandler::size_callback(window, width, height);
+	});
 
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
@@ -29,5 +39,11 @@ void EngineBase::Init() {
 }
 
 void EngineBase::Add_Object(std::shared_ptr<Object> object) {
-	level->Add_Object(object);
+	if (object != nullptr)
+		level->Add_Object(object);
+}
+
+void EngineBase::EngineLoop()
+{
+	STime::UpdateTime(static_cast<float>(glfwGetTime()));
 }

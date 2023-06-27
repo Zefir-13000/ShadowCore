@@ -4,6 +4,7 @@
 #include "Shader.h"
 #include "Transform.h"
 #include "Texture.h"
+#include "Material.h"
 
 class Mesh : public Object {
 private:
@@ -11,17 +12,25 @@ private:
 	size_t vertices_count = 0, indices_count = 0;
 	RenderType render_type;
 	bool Inited = false;
+
+	std::vector<Vertex> ArrayToVertex(std::vector<float>& _arr);
 public:
-	Mesh(std::vector<float>& vertices, std::vector<unsigned int>& indices, RenderType render_type);
-	Mesh(std::vector<float>& vertices, RenderType render_type);
-	Mesh(std::string name, std::vector<float>& vertices, std::vector<unsigned int>& indices, RenderType render_type);
-	Mesh(std::string name, std::vector<float>& vertices, RenderType render_type);
+	MeshType meshType = MODEL;
+
+	Mesh(std::vector<float>& _vertices, std::vector<unsigned int>& _indices, RenderType _render_type);
+	Mesh(std::vector<float>& _vertices, RenderType _render_type);
+	Mesh(std::vector<Vertex>& _vertices, RenderType _render_type);
+	Mesh(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices, RenderType _render_type);
+	Mesh(std::string _name, std::vector<float>& _vertices, std::vector<unsigned int>& _indices, RenderType _render_type);
+	Mesh(std::string _name, std::vector<float>& _vertices, RenderType _render_type);
+	Mesh(std::string _name, std::vector<Vertex>& _vertices, RenderType _render_type);
+	Mesh(std::string _name, std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices, RenderType _render_type);
 
 	void Render();
-	void SetShader(std::shared_ptr<Shader> shader);
-	void SetTextures(std::vector<std::shared_ptr<Texture>> textures);
+	void SetShader(std::shared_ptr<Shader> _shader);
+	void SetMaterial(std::shared_ptr<Material> _material);
 
-	std::vector<std::shared_ptr<Texture>> textures;
+	std::shared_ptr<Material> material;
 
 	Transform local_transform, transform;
 

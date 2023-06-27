@@ -1,8 +1,31 @@
 #pragma once
 
 enum ObjectTypes {
-	OBJECT = 0x00,
-	MESH = 0x01
+	OBJECT = 0,
+	MESH = 1,
+	CAMERA = 2,
+	LIGHT = 3
+};
+
+enum LightType {
+	POINT_LIGHT = 0,
+	DIRECTIONAL_LIGHT = 1
+};
+
+enum MaterialType {
+	COLOR = 0,
+	TEXTURE = 1,
+	COMBINED = 2,
+	SHADER = 3
+};
+
+enum CameraType {
+	PERSPECTIVE = 0,
+	ORTHOGRAPHIC = 1
+};
+
+enum MeshType {
+	MODEL = 0
 };
 
 enum RenderType {
@@ -20,6 +43,6 @@ static const char* RenderTypeStr[] = {
 };
 
 enum TextureTypes {
-	DIFFUSE = 0x00,
-	SPECULAR = 0x01
+	DIFFUSE = 0,
+	SPECULAR = 1
 };

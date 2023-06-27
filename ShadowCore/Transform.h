@@ -15,6 +15,8 @@ public:
 
 	glm::mat4 model = glm::mat4(1.);
 
+	glm::vec3 forward{}, up{}, right{};
+
 	glm::vec3 position{};
 	glm::vec3 rotation{};
 	glm::vec3 scale = glm::vec3(1.);

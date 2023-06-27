@@ -23,3 +23,9 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "Classes.h"
+
+struct Vertex {
+	glm::vec3 position{};
+	glm::vec2 texCoord{};
+	glm::vec3 normal{};
+};
