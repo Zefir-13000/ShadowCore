@@ -5,7 +5,7 @@
 class Material
 {
 public:
-	MaterialType type = COLOR;
+	MaterialType type = MATERIAL;
 
 	virtual MaterialType GetType();
 
@@ -13,23 +13,18 @@ public:
 	~Material() {};
 };
 
-class MaterialColor : public Material {
+class SMaterial : public Material {
 public:
-	glm::vec3 Albedo{ 0.87, 0.5, 0.27 };
-	float Ambient = 0.1f;
-	float SpecularStrength = 0.5f;
-	float Shininess = 256.f;
+	glm::vec3 Ambient{ 0.1f };
+	std::shared_ptr<Texture> ambient_texture = nullptr;
+	glm::vec3 Diffuse{ 0.87, 0.5, 0.27 };
+	std::shared_ptr<Texture> diffuse_texture = nullptr;
+	glm::vec3 Specular{0.5f};
+	std::shared_ptr<Texture> specular_texture = nullptr;
+	glm::vec3 Emission{0.0f};
+	std::shared_ptr<Texture> emission_texture = nullptr;
+	float Shininess = 32.f;
 
-	MaterialColor();
-	~MaterialColor() {};
+	SMaterial();
+	~SMaterial() {};
 };
-
-class MaterialTexture : public Material {
-public:
-	std::shared_ptr<Texture> diffuse_texture;
-	glm::vec3 Albedo{1.};
-
-	MaterialTexture(std::shared_ptr<Texture> _diffuse_texture);
-	~MaterialTexture() {};
-};
-

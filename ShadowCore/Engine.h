@@ -10,6 +10,7 @@
 #include "Material.h"
 #include "Light.h"
 #include "STime.h"
+#include "Ray.h"
 
 class EventHandler {
 public:
@@ -23,11 +24,14 @@ struct Window {
 	int width = 0, height = 0;
 };
 
+
 class EngineBase {
 public:
 	Window window;
 	std::unique_ptr<EventHandler> eventHandler = std::make_unique<EventHandler>();
 	std::unique_ptr<Level> level = std::make_unique<Level>("Level");
+
+	std::shared_ptr<Shader> debug_shader = nullptr;
 
 	void Init();
 	void Add_Object(std::shared_ptr<Object> object);
@@ -37,6 +41,7 @@ public:
 	virtual void PreRender();
 	virtual void PostRender();
 	virtual void InputProcess();
+
 
 	EngineBase();
 	~EngineBase() {}

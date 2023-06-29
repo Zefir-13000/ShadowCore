@@ -161,6 +161,9 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="Ray.cpp" />
+    <ClCompile Include="RayObjects.cpp" />
+    <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="STime.cpp" />
@@ -185,6 +188,9 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="Ray.h" />
+    <ClInclude Include="RayObjects.h" />
+    <ClInclude Include="RenderObject.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ssi.h" />
     <ClInclude Include="Texture.h" />

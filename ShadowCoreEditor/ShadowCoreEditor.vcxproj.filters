@@ -29,5 +29,11 @@
     <None Include="Shaders\Base.vert">
       <Filter>Файлы ресурсов\Shaders</Filter>
     </None>
+    <None Include="Shaders\Debug.frag">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Debug.vert">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

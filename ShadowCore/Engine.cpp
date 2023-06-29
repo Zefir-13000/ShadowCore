@@ -1,5 +1,6 @@
 #include "Engine.h"
 
+
 void EngineBase::Init() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

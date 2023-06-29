@@ -53,6 +53,8 @@ void Texture::Bind(std::shared_ptr<Shader> shader, int texNum) {
         shader->setInt("has_diffuse_texture", 1);
     else if (type == SPECULAR)
         shader->setInt("has_specular_texture", 1);
+    else if (type == EMISSION)
+        shader->setInt("has_emission_texture", 1);
     glActiveTexture(GL_TEXTURE0 + texNum);
     glBindTexture(GL_TEXTURE_2D, textureID);
 }
