@@ -41,10 +41,9 @@ std::vector<Vertex> RenderObject::ArrayToVertexPositionOnly(std::vector<float>& 
     return res;
 }
 
-void RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices, HelpObjectType _help_type = NONE) {
+void RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) {
     RenderObject::type = RENDER_OBJECT;
     RenderObject::render_type = ELEMENT;
-    RenderObject::help_type = _help_type;
     
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -75,10 +74,9 @@ void RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsign
     Inited = true;
 }
 
-void RenderObject::Initialize(std::vector<Vertex>& _vertices, HelpObjectType _help_type = NONE) {
+void RenderObject::Initialize(std::vector<Vertex>& _vertices) {
     RenderObject::type = RENDER_OBJECT;
     RenderObject::render_type = ARRAY;
-    RenderObject::help_type = _help_type;
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -124,28 +122,12 @@ RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices, std
     RenderObject::name = _name;
 }
 
-RenderObject::RenderObject(std::vector<Vertex> _vertices, HelpObjectType _help_type) {
-    Initialize(_vertices, _help_type);
-}
-
-RenderObject::RenderObject(std::string _name, std::vector<Vertex> _vertices, HelpObjectType _help_type) : RenderObject(_vertices, _help_type) {
-    RenderObject::name = _name;
-}
-
-RenderObject::RenderObject(std::string _name, std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, HelpObjectType _help_type) : RenderObject(_vertices, _indices, _help_type) {
-    RenderObject::name = _name;
-}
-
 RenderObject::RenderObject(std::vector<Vertex>& _vertices) {
     Initialize(_vertices);
 }
 
 RenderObject::RenderObject(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) {
     Initialize(_vertices, _indices);
-}
-
-RenderObject::RenderObject(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, HelpObjectType _help_type) {
-    Initialize(_vertices, _indices, _help_type);
 }
 
 RenderObject::RenderObject(std::string _name, std::vector<Vertex>& _vertices) : RenderObject(_vertices) {

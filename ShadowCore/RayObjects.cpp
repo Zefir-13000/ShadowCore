@@ -15,7 +15,7 @@ std::vector<unsigned int> aabbIndices = {
     6, 7, 3
 };
 
-std::vector<Vertex> AABB::BuildAABB_Box(std::vector<Vertex>& _vertices) {
+std::vector<Vertex>& AABB::BuildAABB_Box(std::vector<Vertex>& _vertices) {
     float minX = std::numeric_limits<float>::infinity();
     float minY = std::numeric_limits<float>::infinity();
     float minZ = std::numeric_limits<float>::infinity();
@@ -35,6 +35,9 @@ std::vector<Vertex> AABB::BuildAABB_Box(std::vector<Vertex>& _vertices) {
     AABB::box.min = glm::vec3(minX, minY, minZ);
     AABB::box.max = glm::vec3(maxX, maxY, maxZ);
 
+    AABB::start_box.min = glm::vec3(minX, minY, minZ);
+    AABB::start_box.max = glm::vec3(maxX, maxY, maxZ);
+
     std::vector<float> aabbVertices = {
         box.min.x, box.min.y, box.min.z,
         box.max.x, box.min.y, box.min.z,
@@ -51,7 +54,7 @@ std::vector<Vertex> AABB::BuildAABB_Box(std::vector<Vertex>& _vertices) {
     return res;
 }
 
-std::vector<Vertex> AABB::BuildAABB_Box(std::vector<float>& _vertices) {
+std::vector<Vertex>& AABB::BuildAABB_Box(std::vector<float>& _vertices) {
     std::vector<Vertex> vertices = ArrayToVertex(_vertices);
     return AABB::BuildAABB_Box(vertices);
 }
@@ -67,8 +70,8 @@ AABB_Box AABB::CalculateMinMax(glm::mat4 model, bool rebuild = false) {
 
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-            a = model[i][j] * box.min[j];
-            b = model[i][j] * box.max[j];
+            a = model[i][j] * start_box.min[j];
+            b = model[i][j] * start_box.max[j];
             if (a < b) {
                 res.min[i] += a;
                 res.max[i] += b;
@@ -105,17 +108,8 @@ void AABB::ReBuildAABB_Box() {
        box.max.x, box.max.y, box.max.z,
        box.min.x, box.max.y, box.max.z
     };
-    std::cout << "min - X: " << box.min.x << " Y: " << box.min.y << " Z: " << box.min.z << " max - X: " << box.max.x << " Y: " << box.max.y << " Z: " << box.max.z << std::endl;
 
     std::vector<Vertex> res = ArrayToVertexPositionOnly(aabbVertices);
 
-    Initialize(res, aabbIndices, AABB_BOX);
-}
-
-std::vector<Vertex> Line::ConvertPosToLine(glm::vec3 _startPos, glm::vec3 _endPos) {
-    Vertex startLinePos{}, endLinePos{};
-    startLinePos.position = _startPos;
-    endLinePos.position = _endPos;
-    std::vector<Vertex> res = { startLinePos, endLinePos };
-    return res;
+    Initialize(res, aabbIndices);
 }

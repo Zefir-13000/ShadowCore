@@ -24,26 +24,39 @@ void EngineBase::PreRender() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (std::shared_ptr<Object> obj : level->objects) {
-        if (obj->type == MESH) {
-            std::shared_ptr<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(obj);
+        if (obj->type == SMODEL) {
+            std::shared_ptr<Model> mesh = std::dynamic_pointer_cast<Model>(obj);
             mesh->Render();
+
             debug_shader->Activate();
+            debug_shader->setVec3("color", glm::vec3(0.8f));
             debug_shader->setMat4("model", glm::mat4(1.f));
             debug_shader->setMat4("view", level->main_cam->view);
             debug_shader->setMat4("projection", level->main_cam->proj);
+
             mesh->aabb_box->Render();
         }
-        else if (obj->type == RENDER_OBJECT) {
-            std::shared_ptr<RenderObject> r_obj = std::dynamic_pointer_cast<RenderObject>(obj);
-            if (r_obj->help_type == LINE) {
-                std::shared_ptr<Line> line = std::dynamic_pointer_cast<Line>(r_obj);
+        else if (obj->type == SLINE) {
+            std::shared_ptr<Line> line = std::dynamic_pointer_cast<Line>(obj);
 
-                debug_shader->Activate();
-                debug_shader->setMat4("model", glm::mat4(1.0f));
-                debug_shader->setMat4("view", level->main_cam->view);
-                debug_shader->setMat4("projection", level->main_cam->proj);
-                line->Render();
-            }
+            debug_shader->Activate();
+            debug_shader->setVec3("color", glm::vec3(0.8f));
+            debug_shader->setMat4("model", glm::mat4(1.0f));
+            debug_shader->setMat4("view", level->main_cam->view);
+            debug_shader->setMat4("projection", level->main_cam->proj);
+
+            line->Render();
+        }
+        else if (obj->type == SPOINT) {
+            std::shared_ptr<Point> point = std::dynamic_pointer_cast<Point>(obj);
+
+            debug_shader->Activate();
+            debug_shader->setVec3("color", glm::vec3(0.8f));
+            debug_shader->setMat4("model", glm::mat4(1.0f));
+            debug_shader->setMat4("view", level->main_cam->view);
+            debug_shader->setMat4("projection", level->main_cam->proj);
+
+            point->Render();
         }
     }
     EngineBase::EngineLoop();
@@ -78,7 +91,7 @@ void EngineBase::InputProcess() {
         glfwGetCursorPos(window.GLFW_window, &mouseX, &mouseY);
         glm::vec3 ray_dir = Ray::GetScreenToWorld(glm::vec2(mouseX, mouseY), glm::vec2(window.width, window.height), level->main_cam->proj, level->main_cam->view, level->main_cam->transform.position);
         std::shared_ptr<Ray> ray = std::make_shared<Ray>(level->main_cam->transform.position, ray_dir);
-        std::shared_ptr<Mesh> obj1 = std::dynamic_pointer_cast<Mesh>(level->objects[0]);
+        std::shared_ptr<Model> obj1 = std::dynamic_pointer_cast<Model>(level->objects[0]);
         
         float t = 0;
         std::cout << "AABB - min: X: " << obj1->aabb_box->box.min.x << " Y: " << obj1->aabb_box->box.min.y << " Z: " << obj1->aabb_box->box.min.z << " max: X: " << obj1->aabb_box->box.max.x << " Y: " << obj1->aabb_box->box.max.y << " Z: " << obj1->aabb_box->box.max.z << std::endl;
@@ -87,8 +100,12 @@ void EngineBase::InputProcess() {
         std::cout << "CamRay - X: " << level->main_cam->transform.forward.x << " Y: " << level->main_cam->transform.forward.y << " Z: " << level->main_cam->transform.forward.z << std::endl;
     
         if (t > 0) {
-            std::shared_ptr<Line> ray_line = std::make_shared<Line>(ray->origin, ray_dir * 100.f);
+            glm::vec3 hitPoint = ray->origin + ray_dir * t;
+            std::shared_ptr<Point> ray_point = std::make_shared<Point>(hitPoint, 8.f);
+
+            std::shared_ptr<Line> ray_line = std::make_shared<Line>(ray->origin, ray->origin + ray_dir * 100.f);
             level->Add_Object(std::static_pointer_cast<Object>(ray_line));
+            level->Add_Object(std::static_pointer_cast<Object>(ray_point));
         }
     }
     else if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_RELEASE) {
@@ -97,11 +114,8 @@ void EngineBase::InputProcess() {
     if (glfwGetKey(window.GLFW_window, GLFW_KEY_Q) == GLFW_PRESS) {
         std::vector<std::shared_ptr<Object>> objsToErase = {};
         for (std::shared_ptr<Object> obj : level->objects) {
-            if (obj->type == RENDER_OBJECT) {
-                std::shared_ptr<RenderObject> r_obj = std::dynamic_pointer_cast<RenderObject>(obj);
-                if (r_obj->help_type == LINE) {
-                    objsToErase.push_back(obj);
-                }
+            if (obj->type == SLINE || obj->type == SPOINT) {
+                objsToErase.push_back(obj);
             }
         }
 
@@ -183,12 +197,12 @@ int main() {
     };
 
     glm::vec3 cubePositions[] = {
-        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(1.0f,  0.0f,  0.0f),
         glm::vec3(1.0f,  3.0f, -5.0f),
     };
      
     for (int i = 0; i < 2; i++) {
-        std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
+        std::shared_ptr<Model> mesh = std::make_shared<Model>(std::string("Cube"), vertices);
         mesh->transform.Translate(cubePositions[i]);
         mesh->transform.Rotate(glm::vec3(45.f, 0.f, 0.f));
         mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
@@ -198,15 +212,16 @@ int main() {
         std::cout << "X: " << mesh->transform.forward.x << " Y: " << mesh->transform.forward.y << " Z: " << mesh->transform.forward.z << std::endl;
     }
 
-    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
+    std::shared_ptr<Model> mesh = std::make_shared<Model>(std::string("Cube"), vertices);
     mesh->transform.Scale(glm::vec3(0.1f));
     mesh->transform.Translate(glm::vec3(-2, 1, 0));
+    mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
     mesh->SetShader(base_shader);
     mesh->SetMaterial(lightMaterial);
     engine->Add_Object(std::static_pointer_cast<Object>(mesh));
     
     
-    mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
+    
     light->transform.Translate(glm::vec3(-2, 1, 0));
 
 

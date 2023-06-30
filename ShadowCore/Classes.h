@@ -5,13 +5,17 @@ enum ObjectType {
 	RENDER_OBJECT = 1,
 	MESH = 2,
 	CAMERA = 3,
-	LIGHT = 4
+	LIGHT = 4,
+	SLINE = 5,
+	SPOINT = 6,
+	SMODEL = 7,
 };
 
-enum HelpObjectType {
-	NONE = 0,
-	AABB_BOX = 1,
-	LINE = 2,
+enum UseLessType {
+	USELESS = 0,
+	USEFUL = 1,
+	NEEDED = 2,
+	MANDATORY = 3,
 };
 
 enum LightType {
