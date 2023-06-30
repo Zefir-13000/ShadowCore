@@ -75,5 +75,5 @@ void Mesh::Render() {
 
 Mesh::Mesh(std::string _name, std::vector<float>& _vertices) : RenderObject(_name, _vertices) {
     type = MESH;
-    aabb_box = std::make_shared<AABB>(_vertices);
+    aabb_box = std::make_shared<AABB>(_vertices, transform.model);
 }

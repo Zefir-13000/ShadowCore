@@ -21,6 +21,9 @@ public:
 		glDeleteBuffers(1, &EBO);
 	}
 
+	void Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices, HelpObjectType _help_type);
+	void Initialize(std::vector<Vertex>& _vertices, HelpObjectType _help_type);
+
 	RenderObject(std::vector<float>& _vertices, std::vector<unsigned int>& _indices);
 	RenderObject(std::vector<float>& _vertices);
 	RenderObject(std::vector<Vertex> _vertices, HelpObjectType _help_type);

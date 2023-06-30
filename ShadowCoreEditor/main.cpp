@@ -28,7 +28,7 @@ void EngineBase::PreRender() {
             std::shared_ptr<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(obj);
             mesh->Render();
             debug_shader->Activate();
-            debug_shader->setMat4("model", glm::scale(mesh->transform.model, glm::vec3(1.01f)));
+            debug_shader->setMat4("model", glm::mat4(1.f));
             debug_shader->setMat4("view", level->main_cam->view);
             debug_shader->setMat4("projection", level->main_cam->proj);
             mesh->aabb_box->Render();
@@ -190,7 +190,8 @@ int main() {
     for (int i = 0; i < 2; i++) {
         std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
         mesh->transform.Translate(cubePositions[i]);
-        mesh->transform.Rotate(cubePositions[i]);
+        mesh->transform.Rotate(glm::vec3(45.f, 0.f, 0.f));
+        mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
         mesh->SetShader(base_shader);
         mesh->SetMaterial(mainColorMaterial);
         engine->Add_Object(std::static_pointer_cast<Object>(mesh));
@@ -199,11 +200,14 @@ int main() {
 
     std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
     mesh->transform.Scale(glm::vec3(0.1f));
+    mesh->transform.Translate(glm::vec3(-2, 1, 0));
     mesh->SetShader(base_shader);
     mesh->SetMaterial(lightMaterial);
     engine->Add_Object(std::static_pointer_cast<Object>(mesh));
     
-    mesh->transform.Translate(glm::vec3(-2, 1, 0));
+    
+    mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
+    light->transform.Translate(glm::vec3(-2, 1, 0));
 
 
     std::shared_ptr<Camera> cam1 = std::make_shared<Camera>(engine->window.width, engine->window.height, 60.f, PERSPECTIVE);

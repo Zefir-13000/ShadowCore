@@ -41,52 +41,22 @@ std::vector<Vertex> RenderObject::ArrayToVertexPositionOnly(std::vector<float>& 
     return res;
 }
 
-RenderObject::RenderObject(std::vector<float>& _vertices) {
-    RenderObject::type = RENDER_OBJECT;
-    RenderObject::render_type = ARRAY;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    std::vector<Vertex> vertices = RenderObject::ArrayToVertex(_vertices);
-    vertices_count = vertices.size();
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, vertices.data(), GL_STATIC_DRAW);
-
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    Inited = true;
-}
-
-RenderObject::RenderObject(std::vector<float>& _vertices, std::vector<unsigned int>& _indices) {
+void RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices, HelpObjectType _help_type = NONE) {
     RenderObject::type = RENDER_OBJECT;
     RenderObject::render_type = ELEMENT;
-
+    RenderObject::help_type = _help_type;
+    
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
 
-    std::vector<Vertex> vertices = RenderObject::ArrayToVertex(_vertices);
-    vertices_count = vertices.size();
+    vertices_count = _vertices.size();
     indices_count = _indices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, _vertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_indices) * indices_count, _indices.data(), GL_STATIC_DRAW);
@@ -105,17 +75,7 @@ RenderObject::RenderObject(std::vector<float>& _vertices, std::vector<unsigned i
     Inited = true;
 }
 
-RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices) : RenderObject(_vertices) {
-    RenderObject::type = RENDER_OBJECT;
-    RenderObject::name = _name;
-}
-
-RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices, std::vector<unsigned int>& _indices) : RenderObject(_vertices, _indices) {
-    RenderObject::type = RENDER_OBJECT;
-    RenderObject::name = _name;
-}
-
-RenderObject::RenderObject(std::vector<Vertex> _vertices, HelpObjectType _help_type) {
+void RenderObject::Initialize(std::vector<Vertex>& _vertices, HelpObjectType _help_type = NONE) {
     RenderObject::type = RENDER_OBJECT;
     RenderObject::render_type = ARRAY;
     RenderObject::help_type = _help_type;
@@ -143,6 +103,29 @@ RenderObject::RenderObject(std::vector<Vertex> _vertices, HelpObjectType _help_t
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     Inited = true;
+}
+
+
+RenderObject::RenderObject(std::vector<float>& _vertices) {
+    std::vector<Vertex> vertices = ArrayToVertex(_vertices);
+    Initialize(vertices);
+}
+
+RenderObject::RenderObject(std::vector<float>& _vertices, std::vector<unsigned int>& _indices) {
+    std::vector<Vertex> vertices = ArrayToVertex(_vertices);
+    Initialize(vertices, _indices);
+}
+
+RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices) : RenderObject(_vertices) {
+    RenderObject::name = _name;
+}
+
+RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices, std::vector<unsigned int>& _indices) : RenderObject(_vertices, _indices) {
+    RenderObject::name = _name;
+}
+
+RenderObject::RenderObject(std::vector<Vertex> _vertices, HelpObjectType _help_type) {
+    Initialize(_vertices, _help_type);
 }
 
 RenderObject::RenderObject(std::string _name, std::vector<Vertex> _vertices, HelpObjectType _help_type) : RenderObject(_vertices, _help_type) {
@@ -154,114 +137,27 @@ RenderObject::RenderObject(std::string _name, std::vector<Vertex> _vertices, std
 }
 
 RenderObject::RenderObject(std::vector<Vertex>& _vertices) {
-    RenderObject::type = RENDER_OBJECT;
-    RenderObject::render_type = ARRAY;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    vertices_count = _vertices.size();
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, _vertices.data(), GL_STATIC_DRAW);
-
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    Inited = true;
+    Initialize(_vertices);
 }
 
 RenderObject::RenderObject(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) {
-    RenderObject::type = RENDER_OBJECT;
-    RenderObject::render_type = ELEMENT;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    vertices_count = _vertices.size();
-    indices_count = _indices.size();
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, _vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_indices) * indices_count, _indices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    Inited = true;
+    Initialize(_vertices, _indices);
 }
 
 RenderObject::RenderObject(std::vector<Vertex> _vertices, std::vector<unsigned int> _indices, HelpObjectType _help_type) {
-    RenderObject::type = RENDER_OBJECT;
-    RenderObject::render_type = ELEMENT;
-    RenderObject::help_type = _help_type;
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    vertices_count = _vertices.size();
-    indices_count = _indices.size();
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, _vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_indices) * indices_count, _indices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    Inited = true;
+    Initialize(_vertices, _indices, _help_type);
 }
 
 RenderObject::RenderObject(std::string _name, std::vector<Vertex>& _vertices) : RenderObject(_vertices) {
-    RenderObject::type = RENDER_OBJECT;
     RenderObject::name = _name;
 }
 
 RenderObject::RenderObject(std::string _name, std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) : RenderObject(_vertices, _indices) {
-    RenderObject::type = RENDER_OBJECT;
     RenderObject::name = _name;
 }
 
 
-void RenderObject::SetShader(std::shared_ptr<Shader> shader)
-{
+void RenderObject::SetShader(std::shared_ptr<Shader> shader) {
     RenderObject::render_shader = shader;
 }
 

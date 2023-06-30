@@ -11,15 +11,17 @@ struct AABB_Box {
 
 class AABB : public RenderObject {
 private:
-    std::vector<Vertex> BuildAABB_Box(glm::vec3 _min, glm::vec3 _max);
-    void ReBuildAABB_Box(std::vector<Vertex>& _vertices);
-    std::vector<Vertex> CalculateMinMax(std::vector<Vertex>& _vertices, bool rebuild);
-    std::vector<Vertex> CalculateMinMax(std::vector<float>& _vertices, bool rebuild);
+    std::vector<Vertex> BuildAABB_Box(std::vector<Vertex>& _vertices);
+    std::vector<Vertex> BuildAABB_Box(std::vector<float>& _vertices);
+    void ReBuildAABB_Box();
+    
 public:
     AABB_Box box;
 
-    AABB(std::vector<Vertex>& _vertices) : RenderObject::RenderObject("AABB", CalculateMinMax(_vertices, false), aabbIndices, AABB_BOX) {}
-    AABB(std::vector<float>& _vertices) : RenderObject::RenderObject("AABB", CalculateMinMax(_vertices, false), aabbIndices, AABB_BOX) {}
+    AABB_Box CalculateMinMax(glm::mat4 model, bool rebuild);
+
+    AABB(std::vector<Vertex>& _vertices, glm::mat4 model) : RenderObject::RenderObject("AABB", BuildAABB_Box(_vertices), aabbIndices, AABB_BOX) {}
+    AABB(std::vector<float>& _vertices, glm::mat4 model) : RenderObject::RenderObject("AABB", BuildAABB_Box(_vertices), aabbIndices, AABB_BOX) {}
 
     void Render() {
         //render_shader->Activate();
