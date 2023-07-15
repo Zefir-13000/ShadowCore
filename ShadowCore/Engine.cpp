@@ -1,7 +1,11 @@
 #include "Engine.h"
 
+void SC::EngineBase::Init_Shaders() {
+	EngineBase::standart_render_shader = std::make_shared<SC::Shader>("Base");
+	EngineBase::debug_shader = std::make_shared<SC::Shader>("Debug");
+}
 
-void EngineBase::Init() {
+void SC::EngineBase::Init() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -39,12 +43,12 @@ void EngineBase::Init() {
 	}
 }
 
-void EngineBase::Add_Object(std::shared_ptr<Object> object) {
+void SC::EngineBase::Add_Object(std::shared_ptr<Object> object) {
 	if (object != nullptr)
 		level->Add_Object(object);
 }
 
-void EngineBase::EngineLoop()
+void SC::EngineBase::EngineLoop()
 {
 	STime::UpdateTime(static_cast<float>(glfwGetTime()));
 }

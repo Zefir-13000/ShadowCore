@@ -1,14 +1,11 @@
 #pragma once
 
 enum ObjectType {
-	OBJECT = 0,
-	RENDER_OBJECT = 1,
-	MESH = 2,
-	CAMERA = 3,
-	LIGHT = 4,
-	SLINE = 5,
-	SPOINT = 6,
-	SMODEL = 7,
+	OBJECT = 1,
+	RENDER_OBJECT = 2,
+	MESH = 3,
+	CAMERA = 4,
+	LIGHT = 5
 };
 
 enum UseLessType {
@@ -16,6 +13,11 @@ enum UseLessType {
 	USEFUL = 1,
 	NEEDED = 2,
 	MANDATORY = 3,
+};
+
+enum ComponentType {
+	COMPONENT = 1,
+	RENDER_COMPONENT = 2,
 };
 
 enum LightType {
@@ -34,7 +36,11 @@ enum CameraType {
 };
 
 enum MeshType {
-	MODEL = 0
+	MESH_TYPE = 0,
+	MODEL_TYPE = 1,
+	CONE_TYPE = 2,
+	LINE_TYPE = 3,
+	POINT_TYPE = 4,
 };
 
 enum RenderType {

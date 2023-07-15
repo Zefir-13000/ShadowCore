@@ -24,6 +24,8 @@
 
 #include "Classes.h"
 
+constexpr auto PI = 3.141592654;
+
 struct Vertex {
 	glm::vec3 position{};
 	glm::vec2 texCoord{};

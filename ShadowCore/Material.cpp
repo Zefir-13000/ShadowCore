@@ -1,9 +1,9 @@
 #include "Material.h"
 
-MaterialType Material::GetType() {
+MaterialType SC::Material::GetType() {
 	return Material::type;
 }
 
-SMaterial::SMaterial() {
+SC::SMaterial::SMaterial() {
 	SMaterial::type = MATERIAL;
 }

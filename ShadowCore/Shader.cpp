@@ -1,7 +1,7 @@
 #include "Shader.h"
 
 std::string SHADER_FOLDER("Shaders/");
-Shader::Shader(_In_ std::string name) {
+SC::Shader::Shader(_In_ std::string name) {
 	std::string vertCode;
 	std::string fragCode;
 	std::ifstream vShaderFile;
@@ -69,11 +69,11 @@ Shader::Shader(_In_ std::string name) {
 	glDeleteShader(fragment);
 }
 
-void Shader::Activate() {
+void SC::Shader::Activate() {
 	glUseProgram(this->ID);
-	setFloat("time", static_cast<float>(glfwGetTime()));
+	setFloat("time", static_cast<float>(STime::time));
 }
 
-Shader::~Shader() {
+SC::Shader::~Shader() {
 	glDeleteProgram(this->ID);
 }

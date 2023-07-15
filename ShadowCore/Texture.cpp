@@ -6,7 +6,7 @@
 #endif
 
 std::string TEXTURE_FOLDER("Textures/");
-Texture::Texture(std::string name, TextureTypes type) {
+SC::Texture::Texture(std::string name, TextureTypes type) {
 	int width, height, nrComponents;
 
 	Texture::type = type;
@@ -47,7 +47,7 @@ Texture::Texture(std::string name, TextureTypes type) {
     }
 }
 
-void Texture::Bind(std::shared_ptr<Shader> shader, int texNum) {
+void SC::Texture::Bind(std::shared_ptr<Shader> shader, int texNum) {
     shader->Activate();
     if (type == DIFFUSE)
         shader->setInt("has_diffuse_texture", 1);

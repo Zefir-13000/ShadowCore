@@ -1,6 +1,6 @@
-#include <Engine.h>
+#include <Core.h>
 
-void EngineBase::PostInit() {
+void SC::EngineBase::PostInit() {
     static ImGuiIO io;
 
     ImGui::CreateContext();
@@ -19,49 +19,27 @@ void EngineBase::PostInit() {
     ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
-void EngineBase::PreRender() {
+void SC::EngineBase::PreRender() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (std::shared_ptr<Object> obj : level->objects) {
-        if (obj->type == SMODEL) {
-            std::shared_ptr<Model> mesh = std::dynamic_pointer_cast<Model>(obj);
+        if (obj->type == MESH) {
+            std::shared_ptr<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(obj);
             mesh->Render();
 
-            debug_shader->Activate();
+            /*debug_shader->Activate();
             debug_shader->setVec3("color", glm::vec3(0.8f));
             debug_shader->setMat4("model", glm::mat4(1.f));
             debug_shader->setMat4("view", level->main_cam->view);
             debug_shader->setMat4("projection", level->main_cam->proj);
 
-            mesh->aabb_box->Render();
-        }
-        else if (obj->type == SLINE) {
-            std::shared_ptr<Line> line = std::dynamic_pointer_cast<Line>(obj);
-
-            debug_shader->Activate();
-            debug_shader->setVec3("color", glm::vec3(0.8f));
-            debug_shader->setMat4("model", glm::mat4(1.0f));
-            debug_shader->setMat4("view", level->main_cam->view);
-            debug_shader->setMat4("projection", level->main_cam->proj);
-
-            line->Render();
-        }
-        else if (obj->type == SPOINT) {
-            std::shared_ptr<Point> point = std::dynamic_pointer_cast<Point>(obj);
-
-            debug_shader->Activate();
-            debug_shader->setVec3("color", glm::vec3(0.8f));
-            debug_shader->setMat4("model", glm::mat4(1.0f));
-            debug_shader->setMat4("view", level->main_cam->view);
-            debug_shader->setMat4("projection", level->main_cam->proj);
-
-            point->Render();
+            //mesh->aabb_box->Render();*/
         }
     }
     EngineBase::EngineLoop();
 }
-void EngineBase::PostRender() {
+void SC::EngineBase::PostRender() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -80,25 +58,27 @@ void EngineBase::PostRender() {
 }
 
 static bool Clicked = false;
-void EngineBase::InputProcess() {
+void SC::EngineBase::InputProcess() {
     if (glfwGetKey(window.GLFW_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window.GLFW_window, true);
     
-    if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_PRESS && !Clicked) {
+    if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_PRESS) {
         Clicked = true;
         double mouseX;
         double mouseY;
         glfwGetCursorPos(window.GLFW_window, &mouseX, &mouseY);
         glm::vec3 ray_dir = Ray::GetScreenToWorld(glm::vec2(mouseX, mouseY), glm::vec2(window.width, window.height), level->main_cam->proj, level->main_cam->view, level->main_cam->transform.position);
         std::shared_ptr<Ray> ray = std::make_shared<Ray>(level->main_cam->transform.position, ray_dir);
-        std::shared_ptr<Model> obj1 = std::dynamic_pointer_cast<Model>(level->objects[0]);
+        std::shared_ptr<Mesh> obj1 = std::dynamic_pointer_cast<Mesh>(level->objects[0]);
         
         float t = 0;
-        std::cout << "AABB - min: X: " << obj1->aabb_box->box.min.x << " Y: " << obj1->aabb_box->box.min.y << " Z: " << obj1->aabb_box->box.min.z << " max: X: " << obj1->aabb_box->box.max.x << " Y: " << obj1->aabb_box->box.max.y << " Z: " << obj1->aabb_box->box.max.z << std::endl;
-        std::cout << (t = ray->RayIntersectsAABB(obj1->aabb_box->box, obj1->transform.model)) << std::endl;
-        std::cout << "Ray - X: " << ray_dir.x << " Y: " << ray_dir.y << " Z: " << ray_dir.z << std::endl;
-        std::cout << "CamRay - X: " << level->main_cam->transform.forward.x << " Y: " << level->main_cam->transform.forward.y << " Z: " << level->main_cam->transform.forward.z << std::endl;
-    
+        std::shared_ptr<AABB> aabb = obj1->GetComponent<AABB>();
+        if (aabb != nullptr) {
+            //std::cout << "AABB - min: X: " << obj1->aabb_box->box.min.x << " Y: " << obj1->aabb_box->box.min.y << " Z: " << obj1->aabb_box->box.min.z << " max: X: " << obj1->aabb_box->box.max.x << " Y: " << obj1->aabb_box->box.max.y << " Z: " << obj1->aabb_box->box.max.z << std::endl;
+            std::cout << (t = ray->RayIntersectsAABB(aabb->box, obj1->transform.model)) << std::endl;
+            //std::cout << "Ray - X: " << ray_dir.x << " Y: " << ray_dir.y << " Z: " << ray_dir.z << std::endl;
+            //std::cout << "CamRay - X: " << level->main_cam->transform.forward.x << " Y: " << level->main_cam->transform.forward.y << " Z: " << level->main_cam->transform.forward.z << std::endl;
+        }
         if (t > 0) {
             glm::vec3 hitPoint = ray->origin + ray_dir * t;
             std::shared_ptr<Point> ray_point = std::make_shared<Point>(hitPoint, 8.f);
@@ -106,6 +86,13 @@ void EngineBase::InputProcess() {
             std::shared_ptr<Line> ray_line = std::make_shared<Line>(ray->origin, ray->origin + ray_dir * 100.f);
             level->Add_Object(std::static_pointer_cast<Object>(ray_line));
             level->Add_Object(std::static_pointer_cast<Object>(ray_point));
+
+            //obj1->RemoveComponent(aabb);
+
+        }
+        else {
+            std::shared_ptr<Line> ray_line = std::make_shared<Line>(ray->origin, ray->origin + ray_dir * 100.f);
+            level->Add_Object(std::static_pointer_cast<Object>(ray_line));
         }
     }
     else if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_RELEASE) {
@@ -114,8 +101,11 @@ void EngineBase::InputProcess() {
     if (glfwGetKey(window.GLFW_window, GLFW_KEY_Q) == GLFW_PRESS) {
         std::vector<std::shared_ptr<Object>> objsToErase = {};
         for (std::shared_ptr<Object> obj : level->objects) {
-            if (obj->type == SLINE || obj->type == SPOINT) {
-                objsToErase.push_back(obj);
+            if (obj->type == MESH) {
+                std::shared_ptr<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(obj);
+                if (mesh->meshType == LINE_TYPE || mesh->meshType == POINT_TYPE) {
+                    objsToErase.push_back(obj);
+                }
             }
         }
 
@@ -124,33 +114,32 @@ void EngineBase::InputProcess() {
     }
 }
 
-EngineBase::EngineBase() {
+SC::EngineBase::EngineBase() {
     Init();
+    Init_Shaders();
     PostInit();
 }
 
 int main() {
-    std::unique_ptr<EngineBase> engine = std::make_unique<EngineBase>();
-    std::shared_ptr<Shader> base_shader = std::make_shared<Shader>("Base");
-    std::shared_ptr<Shader> debug_shader = std::make_shared<Shader>("Debug");
-    engine->debug_shader = debug_shader;
-    std::shared_ptr<Texture> diffuse_tex1 = std::make_shared<Texture>("WhiteBrick.jpg", DIFFUSE);
-    std::shared_ptr<Texture> diffuse_box = std::make_shared<Texture>("container2.png", DIFFUSE);
-    std::shared_ptr<Texture> specular_box = std::make_shared<Texture>("container2_specular.png", SPECULAR);
-    std::shared_ptr<Texture> emission_box = std::make_shared<Texture>("matrix.jpg", EMISSION);
+    std::shared_ptr<SC::Core> core = std::make_shared<SC::Core>();
 
-    std::shared_ptr<SMaterial> mainColorMaterial = std::make_shared<SMaterial>();
+    std::shared_ptr<SC::Texture> diffuse_tex1 = std::make_shared<SC::Texture>("WhiteBrick.jpg", DIFFUSE);
+    std::shared_ptr<SC::Texture> diffuse_box = std::make_shared<SC::Texture>("container2.png", DIFFUSE);
+    std::shared_ptr<SC::Texture> specular_box = std::make_shared<SC::Texture>("container2_specular.png", SPECULAR);
+    std::shared_ptr<SC::Texture> emission_box = std::make_shared<SC::Texture>("matrix.jpg", EMISSION);
+
+    std::shared_ptr<SC::SMaterial> mainColorMaterial = std::make_shared<SC::SMaterial>();
     mainColorMaterial->Diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
     mainColorMaterial->Ambient = glm::vec3(1.0f, 0.5f, 0.31f);
     mainColorMaterial->Specular = glm::vec3(1.0f);
     mainColorMaterial->diffuse_texture = diffuse_box;
     mainColorMaterial->specular_texture = specular_box;
     mainColorMaterial->emission_texture = emission_box;
-    std::shared_ptr<SMaterial> lightMaterial = std::make_shared<SMaterial>();
+    std::shared_ptr<SC::SMaterial> lightMaterial = std::make_shared<SC::SMaterial>();
     lightMaterial->Diffuse = glm::vec3(1.0f);
     lightMaterial->Ambient = glm::vec3(1.0f);
     lightMaterial->Emission = glm::vec3(1.0f);
-    std::shared_ptr<PointLight> light = std::make_shared<PointLight>(glm::vec3(1.0f), 1.0f);
+    std::shared_ptr<SC::PointLight> light = std::make_shared<SC::PointLight>(glm::vec3(1.0f), 1.0f);
 
     std::vector<float> vertices = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,   0.0f,  0.0f, -1.0f,
@@ -202,58 +191,69 @@ int main() {
     };
      
     for (int i = 0; i < 2; i++) {
-        std::shared_ptr<Model> mesh = std::make_shared<Model>(std::string("Cube"), vertices);
+        std::shared_ptr<SC::Mesh> mesh = std::make_shared<SC::Mesh>(std::string("Cube"), vertices);
         mesh->transform.Translate(cubePositions[i]);
         mesh->transform.Rotate(glm::vec3(45.f, 0.f, 0.f));
-        mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
-        mesh->SetShader(base_shader);
+        //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
+        std::shared_ptr<SC::AABB> aabb = std::make_shared<SC::AABB>(mesh->vertices);
+        aabb->CalculateMinMax(mesh->transform.model, true);
+        mesh->AddComponent(aabb);
+        mesh->SetShader(core->Engine->standart_render_shader);
         mesh->SetMaterial(mainColorMaterial);
-        engine->Add_Object(std::static_pointer_cast<Object>(mesh));
+        core->Engine->Add_Object(std::static_pointer_cast<SC::Object>(mesh));
         std::cout << "X: " << mesh->transform.forward.x << " Y: " << mesh->transform.forward.y << " Z: " << mesh->transform.forward.z << std::endl;
     }
 
-    std::shared_ptr<Model> mesh = std::make_shared<Model>(std::string("Cube"), vertices);
+    std::shared_ptr<SC::Mesh> mesh = std::make_shared<SC::Mesh>(std::string("Cube"), vertices);
     mesh->transform.Scale(glm::vec3(0.1f));
     mesh->transform.Translate(glm::vec3(-2, 1, 0));
-    mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
-    mesh->SetShader(base_shader);
+    std::shared_ptr<SC::AABB> aabb = std::make_shared<SC::AABB>(mesh->vertices);
+    aabb->CalculateMinMax(mesh->transform.model, true);
+    mesh->AddComponent(aabb);
+    //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
+    mesh->SetShader(core->Engine->standart_render_shader);
     mesh->SetMaterial(lightMaterial);
-    engine->Add_Object(std::static_pointer_cast<Object>(mesh));
-    
+    core->Engine->Add_Object(std::static_pointer_cast<SC::Object>(mesh));
+
+    std::shared_ptr<SC::Cone> cone = std::make_shared<SC::Cone>(0.3f, 0.1f);
+    cone->transform.Translate(glm::vec3(2, 1, 0));
+    //cone->aabb_box->CalculateMinMax(cone->transform.model, true);
+    cone->SetShader(core->Engine->standart_render_shader);
+    core->Engine->Add_Object(std::static_pointer_cast<SC::Object>(cone));
     
     
     light->transform.Translate(glm::vec3(-2, 1, 0));
 
 
-    std::shared_ptr<Camera> cam1 = std::make_shared<Camera>(engine->window.width, engine->window.height, 60.f, PERSPECTIVE);
+    std::shared_ptr<SC::Camera> cam1 = std::make_shared<SC::Camera>(core->Engine->window.width, core->Engine->window.height, 60.f, PERSPECTIVE);
     cam1->transform.Translate(glm::vec3(1,1,-1));
-    engine->level->main_cam = cam1;
+    core->Engine->level->main_cam = cam1;
 
-    glViewport(0, 0, engine->window.width, engine->window.height);
+    glViewport(0, 0, core->Engine->window.width, core->Engine->window.height);
     glEnable(GL_DEPTH_TEST);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // WireFrame
-    while (!glfwWindowShouldClose(engine->window.GLFW_window))
+    while (!glfwWindowShouldClose(core->Engine->window.GLFW_window))
     {
-        engine->InputProcess();
+        core->Engine->InputProcess();
 
-        base_shader->Activate();
-        base_shader->setMat4("view", cam1->view);
-        base_shader->setMat4("projection", cam1->proj);
+        core->Engine->standart_render_shader->Activate();
+        core->Engine->standart_render_shader->setMat4("view", cam1->view);
+        core->Engine->standart_render_shader->setMat4("projection", cam1->proj);
 
-        base_shader->setVec3("light.position", light->transform.position);
-        base_shader->setVec3("light.AmbientStrength", glm::vec3(0.2f));
-        base_shader->setVec3("light.DiffuseStrength", glm::vec3(0.5f));
-        base_shader->setVec3("light.SpecularStrength", glm::vec3(1.0f));
-        base_shader->setVec3("light.color", light->light_color);
+        core->Engine->standart_render_shader->setVec3("light.position", light->transform.position);
+        core->Engine->standart_render_shader->setVec3("light.AmbientStrength", glm::vec3(0.2f));
+        core->Engine->standart_render_shader->setVec3("light.DiffuseStrength", glm::vec3(0.5f));
+        core->Engine->standart_render_shader->setVec3("light.SpecularStrength", glm::vec3(1.0f));
+        core->Engine->standart_render_shader->setVec3("light.color", light->light_color);
         
-        base_shader->setVec3("viewPos", cam1->transform.position);
+        core->Engine->standart_render_shader->setVec3("viewPos", cam1->transform.position);
 
-        engine->PreRender();
-        engine->PostRender();
+        core->Engine->PreRender();
+        core->Engine->PostRender();
 
-        cam1->Movement(engine->window.GLFW_window, engine->window.width, engine->window.height);
+        cam1->Movement(core->Engine->window.GLFW_window, core->Engine->window.width, core->Engine->window.height);
 
-        glfwSwapBuffers(engine->window.GLFW_window);
+        glfwSwapBuffers(core->Engine->window.GLFW_window);
         glfwPollEvents();
     }
 

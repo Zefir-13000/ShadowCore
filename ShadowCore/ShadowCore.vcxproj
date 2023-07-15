@@ -147,6 +147,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Editor.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Level.cpp" />
     <ClCompile Include="Libraries\Include\imgui\imgui.cpp" />
@@ -160,7 +163,9 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PrimitiveObjects.cpp" />
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="RayObjects.cpp" />
     <ClCompile Include="RenderObject.cpp" />
@@ -172,6 +177,9 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Classes.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="Core.h" />
+    <ClInclude Include="Editor.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="Libraries\Include\imgui\imconfig.h" />
@@ -187,7 +195,9 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="PrimitiveObjects.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="RayObjects.h" />
     <ClInclude Include="RenderObject.h" />

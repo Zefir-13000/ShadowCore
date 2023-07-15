@@ -1,45 +1,54 @@
 #pragma once
 #include "ssi.h"
 #include "RenderObject.h"
+#include "Component.h"
 
 extern std::vector<unsigned int> aabbIndices;
 
-struct AABB_Box {
-    glm::vec3 min;
-    glm::vec3 max;
-};
+namespace SC {
 
-class AABB : public RenderObject {
-private:
-    std::vector<Vertex>& BuildAABB_Box(std::vector<Vertex>& _vertices);
-    std::vector<Vertex>& BuildAABB_Box(std::vector<float>& _vertices);
-    void ReBuildAABB_Box();
-    AABB_Box start_box;
-public:
+    struct AABB_Box {
+        glm::vec3 min;
+        glm::vec3 max;
+    };
 
-    AABB_Box box;
+    class AABB : public RenderObject, public Component {
+    private:
+        std::vector<Vertex>& BuildAABB_Box(std::vector<Vertex>& _vertices);
+        std::vector<Vertex>& BuildAABB_Box(std::vector<float>& _vertices);
+        void ReBuildAABB_Box();
+        AABB_Box start_box;
+    public:
 
-    AABB_Box CalculateMinMax(glm::mat4 model, bool rebuild);
+        AABB_Box box;
 
-    AABB(std::vector<Vertex>& _vertices) : RenderObject::RenderObject("AABB", BuildAABB_Box(_vertices), aabbIndices) {}
-    AABB(std::vector<float>& _vertices) : RenderObject::RenderObject("AABB", BuildAABB_Box(_vertices), aabbIndices) {}
+        AABB_Box CalculateMinMax(glm::mat4 model, bool rebuild);
 
-    void Render() {
-        //render_shader->Activate();
-        //render_shader->setMat4("model", glm::mat4(1.0));
-        //render_shader->setMat4("projection", enginePtr->level->main_cam->proj);
-        //render_shader->setMat4("view", enginePtr->level->main_cam->view);
+        AABB(std::vector<Vertex>& _vertices) : RenderObject::RenderObject("AABB", BuildAABB_Box(_vertices), aabbIndices) {
+            component_type = RENDER_COMPONENT;
+        }
+        AABB(std::vector<float>& _vertices) : RenderObject::RenderObject("AABB", BuildAABB_Box(_vertices), aabbIndices) {
+            component_type = RENDER_COMPONENT;
+        }
 
-        // Enable wireframe mode
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        void Render() {
+            //render_shader->Activate();
+            //render_shader->setMat4("model", glm::mat4(1.0));
+            //render_shader->setMat4("projection", enginePtr->level->main_cam->proj);
+            //render_shader->setMat4("view", enginePtr->level->main_cam->view);
 
-        // Draw the AABB
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(36), GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+            // Enable wireframe mode
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        // Disable wireframe mode
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
+            // Draw the AABB
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(36), GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+
+            // Disable wireframe mode
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+    };
+
 };

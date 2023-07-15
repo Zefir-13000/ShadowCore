@@ -15,7 +15,7 @@ std::vector<unsigned int> aabbIndices = {
     6, 7, 3
 };
 
-std::vector<Vertex>& AABB::BuildAABB_Box(std::vector<Vertex>& _vertices) {
+std::vector<Vertex>& SC::AABB::BuildAABB_Box(std::vector<Vertex>& _vertices) {
     float minX = std::numeric_limits<float>::infinity();
     float minY = std::numeric_limits<float>::infinity();
     float minZ = std::numeric_limits<float>::infinity();
@@ -54,12 +54,12 @@ std::vector<Vertex>& AABB::BuildAABB_Box(std::vector<Vertex>& _vertices) {
     return res;
 }
 
-std::vector<Vertex>& AABB::BuildAABB_Box(std::vector<float>& _vertices) {
+std::vector<Vertex>& SC::AABB::BuildAABB_Box(std::vector<float>& _vertices) {
     std::vector<Vertex> vertices = ArrayToVertex(_vertices);
     return AABB::BuildAABB_Box(vertices);
 }
 
-AABB_Box AABB::CalculateMinMax(glm::mat4 model, bool rebuild = false) {
+SC::AABB_Box SC::AABB::CalculateMinMax(glm::mat4 model, bool rebuild = false) {
     AABB_Box res{};
 
     float a, b;
@@ -92,7 +92,7 @@ AABB_Box AABB::CalculateMinMax(glm::mat4 model, bool rebuild = false) {
     return res;
 }
 
-void AABB::ReBuildAABB_Box() {
+void SC::AABB::ReBuildAABB_Box() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);

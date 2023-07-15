@@ -1,6 +1,7 @@
 #include "RenderObject.h"
+#include "Engine.h"
 
-std::vector<Vertex> RenderObject::ArrayToVertex(std::vector<float>& _arr) {
+std::vector<Vertex> SC::RenderObject::ArrayToVertex(std::vector<float>& _arr) {
     std::vector<Vertex> res{};
 
     for (size_t i = 0; i < _arr.size(); i += 8) {
@@ -23,7 +24,7 @@ std::vector<Vertex> RenderObject::ArrayToVertex(std::vector<float>& _arr) {
     return res;
 }
 
-std::vector<Vertex> RenderObject::ArrayToVertexPositionOnly(std::vector<float>& _arr) {
+std::vector<Vertex> SC::RenderObject::ArrayToVertexPositionOnly(std::vector<float>& _arr) {
     std::vector<Vertex> res{};
 
     for (size_t i = 0; i < _arr.size(); i += 3) {
@@ -41,7 +42,7 @@ std::vector<Vertex> RenderObject::ArrayToVertexPositionOnly(std::vector<float>& 
     return res;
 }
 
-void RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) {
+void SC::RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) {
     RenderObject::type = RENDER_OBJECT;
     RenderObject::render_type = ELEMENT;
     
@@ -53,6 +54,13 @@ void RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsign
 
     vertices_count = _vertices.size();
     indices_count = _indices.size();
+
+    vertices.clear();
+    indices.clear();
+    for (Vertex v : _vertices)
+        vertices.push_back(v);
+    for (unsigned int i : _indices)
+        indices.push_back(i);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, _vertices.data(), GL_STATIC_DRAW);
@@ -74,7 +82,7 @@ void RenderObject::Initialize(std::vector<Vertex>& _vertices, std::vector<unsign
     Inited = true;
 }
 
-void RenderObject::Initialize(std::vector<Vertex>& _vertices) {
+void SC::RenderObject::Initialize(std::vector<Vertex>& _vertices) {
     RenderObject::type = RENDER_OBJECT;
     RenderObject::render_type = ARRAY;
 
@@ -84,6 +92,9 @@ void RenderObject::Initialize(std::vector<Vertex>& _vertices) {
     glBindVertexArray(VAO);
 
     vertices_count = _vertices.size();
+    vertices.clear();
+    for (Vertex v : _vertices)
+        vertices.push_back(v);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices_count, _vertices.data(), GL_STATIC_DRAW);
@@ -104,47 +115,47 @@ void RenderObject::Initialize(std::vector<Vertex>& _vertices) {
 }
 
 
-RenderObject::RenderObject(std::vector<float>& _vertices) {
+SC::RenderObject::RenderObject(std::vector<float>& _vertices) {
     std::vector<Vertex> vertices = ArrayToVertex(_vertices);
     Initialize(vertices);
 }
 
-RenderObject::RenderObject(std::vector<float>& _vertices, std::vector<unsigned int>& _indices) {
+SC::RenderObject::RenderObject(std::vector<float>& _vertices, std::vector<unsigned int>& _indices) {
     std::vector<Vertex> vertices = ArrayToVertex(_vertices);
     Initialize(vertices, _indices);
 }
 
-RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices) : RenderObject(_vertices) {
+SC::RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices) : RenderObject(_vertices) {
     RenderObject::name = _name;
 }
 
-RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices, std::vector<unsigned int>& _indices) : RenderObject(_vertices, _indices) {
+SC::RenderObject::RenderObject(std::string _name, std::vector<float>& _vertices, std::vector<unsigned int>& _indices) : RenderObject(_vertices, _indices) {
     RenderObject::name = _name;
 }
 
-RenderObject::RenderObject(std::vector<Vertex>& _vertices) {
+SC::RenderObject::RenderObject(std::vector<Vertex>& _vertices) {
     Initialize(_vertices);
 }
 
-RenderObject::RenderObject(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) {
+SC::RenderObject::RenderObject(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) {
     Initialize(_vertices, _indices);
 }
 
-RenderObject::RenderObject(std::string _name, std::vector<Vertex>& _vertices) : RenderObject(_vertices) {
+SC::RenderObject::RenderObject(std::string _name, std::vector<Vertex>& _vertices) : RenderObject(_vertices) {
     RenderObject::name = _name;
 }
 
-RenderObject::RenderObject(std::string _name, std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) : RenderObject(_vertices, _indices) {
+SC::RenderObject::RenderObject(std::string _name, std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices) : RenderObject(_vertices, _indices) {
     RenderObject::name = _name;
 }
 
 
-void RenderObject::SetShader(std::shared_ptr<Shader> shader) {
+void SC::RenderObject::SetShader(std::shared_ptr<Shader> shader) {
     RenderObject::render_shader = shader;
 }
 
 
-void RenderObject::Render() {
+void SC::RenderObject::Render() {
     if (RenderObject::Inited && RenderObject::render_shader != nullptr) {
         RenderObject::render_shader->Activate();
 
@@ -158,6 +169,30 @@ void RenderObject::Render() {
             glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(vertices_count));
         }
         glBindVertexArray(0);
+    }
+    else if (RenderObject::render_shader == nullptr) {
+        std::cerr << "ERROR::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
+    }
+}
+
+void SC::RenderObject::RenderComponents() {
+    if (RenderObject::Inited) {
+        for (std::shared_ptr<Component> component : components) {
+            if (component->component_type == RENDER_COMPONENT) {
+                std::shared_ptr<RenderObject> rd = std::dynamic_pointer_cast<RenderObject>(component);
+                if (rd == nullptr)
+                    continue;
+
+                enginePtr->debug_shader->Activate();
+                enginePtr->debug_shader->setVec3("color", glm::vec3(0.8f));
+                enginePtr->debug_shader->setMat4("model", glm::mat4(1.0f));
+                enginePtr->debug_shader->setMat4("view", enginePtr->level->main_cam->view);
+                enginePtr->debug_shader->setMat4("projection", enginePtr->level->main_cam->proj);
+
+                enginePtr->debug_shader->setMat4("model", glm::mat4(1.0));
+                rd->Render();
+            }
+        }
     }
     else if (RenderObject::render_shader == nullptr) {
         std::cerr << "ERROR::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;

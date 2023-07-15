@@ -3,39 +3,47 @@
 #include "Object.h"
 #include "Shader.h"
 
-class RenderObject : public Object {
-public:
-	unsigned int VAO = 0, VBO = 0, EBO = 0;
-	size_t vertices_count = 0, indices_count = 0;
-	RenderType render_type;
-	bool Inited = false;
+namespace SC {
 
-	std::vector<Vertex> ArrayToVertex(std::vector<float>& _arr);
-	std::vector<Vertex> ArrayToVertexPositionOnly(std::vector<float>& _arr);
+	class RenderObject : public Object {
+	public:
+		unsigned int VAO = 0, VBO = 0, EBO = 0;
+		size_t vertices_count = 0, indices_count = 0;
+		RenderType render_type;
+		bool Inited = false;
 
-public:
-	virtual ~RenderObject() {
-		glDeleteVertexArrays(1, &VAO);
-		glDeleteBuffers(1, &VBO);
-		glDeleteBuffers(1, &EBO);
-	}
+		std::vector<Vertex> ArrayToVertex(std::vector<float>& _arr);
+		std::vector<Vertex> ArrayToVertexPositionOnly(std::vector<float>& _arr);
 
-	void Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices);
-	void Initialize(std::vector<Vertex>& _vertices);
+		std::vector<Vertex> vertices;
+		std::vector<unsigned int> indices;
 
-	RenderObject(std::vector<float>& _vertices, std::vector<unsigned int>& _indices);
-	RenderObject(std::vector<float>& _vertices);
-	RenderObject(std::vector<Vertex>& _vertices);
-	RenderObject(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices);
+	public:
+		std::shared_ptr<Shader> render_shader;
 
-	RenderObject(std::string _name, std::vector<float>& _vertices, std::vector<unsigned int>& _indices);
-	RenderObject(std::string _name, std::vector<float>& _vertices);
-	RenderObject(std::string _name, std::vector<Vertex>& _vertices);
-	RenderObject(std::string _name, std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices);
+		virtual ~RenderObject() {
+			glDeleteVertexArrays(1, &VAO);
+			glDeleteBuffers(1, &VBO);
+			glDeleteBuffers(1, &EBO);
+		}
 
-	virtual void Render();
+		void Initialize(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices);
+		void Initialize(std::vector<Vertex>& _vertices);
 
-	void SetShader(std::shared_ptr<Shader> _shader);
-	std::shared_ptr<Shader> render_shader;
+		RenderObject(std::vector<float>& _vertices, std::vector<unsigned int>& _indices);
+		RenderObject(std::vector<float>& _vertices);
+		RenderObject(std::vector<Vertex>& _vertices);
+		RenderObject(std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices);
+
+		RenderObject(std::string _name, std::vector<float>& _vertices, std::vector<unsigned int>& _indices);
+		RenderObject(std::string _name, std::vector<float>& _vertices);
+		RenderObject(std::string _name, std::vector<Vertex>& _vertices);
+		RenderObject(std::string _name, std::vector<Vertex>& _vertices, std::vector<unsigned int>& _indices);
+
+		virtual void Render();
+		virtual void RenderComponents();
+
+		void SetShader(std::shared_ptr<Shader> _shader);
+	};
+
 };
-

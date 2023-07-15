@@ -1,14 +1,14 @@
 #include "Camera.h"
 
-void Camera::UpdateProjection(int _width, int _height) {
+void SC::Camera::UpdateProjection(int _width, int _height) {
 	Camera::proj = glm::perspective(glm::radians(Camera::FOV), static_cast<float>(_width) / static_cast<float>(_height), Camera::near_plane, Camera::far_plane);
 }
 
-void Camera::UpdateView() {
+void SC::Camera::UpdateView() {
 	Camera::view = glm::lookAt(transform.position, transform.position + transform.forward, transform.up);
 }
 
-void Camera::Movement(GLFWwindow* _window, int _width, int _height)
+void SC::Camera::Movement(GLFWwindow* _window, int _width, int _height)
 {
 	if (glfwGetMouseButton(_window, 1) == GLFW_PRESS && firstPress) {
 		// Fly
@@ -54,7 +54,7 @@ void Camera::Movement(GLFWwindow* _window, int _width, int _height)
 	UpdateView();
 }
 
-Camera::Camera(int _window_width, int _window_height, float _FOV, CameraType _cam_type) {
+SC::Camera::Camera(int _window_width, int _window_height, float _FOV, CameraType _cam_type) {
 	Camera::FOV = _FOV;
 	Camera::cam_type = _cam_type;
 	Camera::type = CAMERA;
