@@ -1,6 +1,8 @@
-#include <Core.h>
+#include <Core/Core.h>
 
-void SC::EngineBase::PostInit() {
+using namespace SC;
+
+void EngineBase::PostInit() {
     static ImGuiIO io;
 
     ImGui::CreateContext();
@@ -19,7 +21,7 @@ void SC::EngineBase::PostInit() {
     ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
-void SC::EngineBase::PreRender() {
+void EngineBase::PreRender() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -27,7 +29,6 @@ void SC::EngineBase::PreRender() {
         if (obj->type == MESH) {
             std::shared_ptr<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(obj);
             mesh->Render();
-
             /*debug_shader->Activate();
             debug_shader->setVec3("color", glm::vec3(0.8f));
             debug_shader->setMat4("model", glm::mat4(1.f));
@@ -39,7 +40,7 @@ void SC::EngineBase::PreRender() {
     }
     EngineBase::EngineLoop();
 }
-void SC::EngineBase::PostRender() {
+void EngineBase::PostRender() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -58,7 +59,7 @@ void SC::EngineBase::PostRender() {
 }
 
 static bool Clicked = false;
-void SC::EngineBase::InputProcess() {
+void EngineBase::InputProcess() {
     if (glfwGetKey(window.GLFW_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window.GLFW_window, true);
     
@@ -110,38 +111,39 @@ void SC::EngineBase::InputProcess() {
         }
 
         for (std::shared_ptr<Object> obj : objsToErase)
-            level->objects.erase(std::remove(level->objects.begin(), level->objects.end(), obj), level->objects.end());
+            level->Destroy_Object(obj);
     }
 }
 
-SC::EngineBase::EngineBase() {
+EngineBase::EngineBase() {
     Init();
     Init_Shaders();
     PostInit();
 }
 
 int main() {
-    std::shared_ptr<SC::Core> core = std::make_shared<SC::Core>();
+    std::shared_ptr<Core> core = std::make_shared<Core>();
+    std::shared_ptr<Level> level = core->Engine->level;
 
-    std::shared_ptr<SC::Texture> diffuse_tex1 = std::make_shared<SC::Texture>("WhiteBrick.jpg", DIFFUSE);
-    std::shared_ptr<SC::Texture> diffuse_box = std::make_shared<SC::Texture>("container2.png", DIFFUSE);
-    std::shared_ptr<SC::Texture> specular_box = std::make_shared<SC::Texture>("container2_specular.png", SPECULAR);
-    std::shared_ptr<SC::Texture> emission_box = std::make_shared<SC::Texture>("matrix.jpg", EMISSION);
+    std::shared_ptr<Texture> diffuse_tex1 = std::make_shared<Texture>("WhiteBrick.jpg", DIFFUSE);
+    std::shared_ptr<Texture> diffuse_box = std::make_shared<Texture>("container2.png", DIFFUSE);
+    std::shared_ptr<Texture> specular_box = std::make_shared<Texture>("container2_specular.png", SPECULAR);
+    std::shared_ptr<Texture> emission_box = std::make_shared<Texture>("matrix.jpg", EMISSION);
 
-    std::shared_ptr<SC::SMaterial> mainColorMaterial = std::make_shared<SC::SMaterial>();
+    std::shared_ptr<SMaterial> mainColorMaterial = std::make_shared<SMaterial>();
     mainColorMaterial->Diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
     mainColorMaterial->Ambient = glm::vec3(1.0f, 0.5f, 0.31f);
     mainColorMaterial->Specular = glm::vec3(1.0f);
     mainColorMaterial->diffuse_texture = diffuse_box;
     mainColorMaterial->specular_texture = specular_box;
     mainColorMaterial->emission_texture = emission_box;
-    std::shared_ptr<SC::SMaterial> lightMaterial = std::make_shared<SC::SMaterial>();
+    std::shared_ptr<SMaterial> lightMaterial = std::make_shared<SMaterial>();
     lightMaterial->Diffuse = glm::vec3(1.0f);
     lightMaterial->Ambient = glm::vec3(1.0f);
     lightMaterial->Emission = glm::vec3(1.0f);
-    std::shared_ptr<SC::PointLight> light = std::make_shared<SC::PointLight>(glm::vec3(1.0f), 1.0f);
+    std::shared_ptr<PointLight> light = std::make_shared<PointLight>(glm::vec3(1.0f), 1.0f);
 
-    std::vector<float> vertices = {
+    std::shared_ptr<std::vector<float>> vertices = std::make_shared<std::vector<float>>(std::initializer_list<float>{
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,   0.0f,  0.0f, -1.0f,
      0.5f, -0.5f, -0.5f,  1.0f, 0.0f,   0.0f,  0.0f, -1.0f,
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,   0.0f,  0.0f, -1.0f,
@@ -183,7 +185,7 @@ int main() {
      0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   0.0f,  1.0f,  0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,   0.0f,  1.0f,  0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,   0.0f,  1.0f,  0.0f,
-    };
+    });
 
     glm::vec3 cubePositions[] = {
         glm::vec3(1.0f,  0.0f,  0.0f),
@@ -191,43 +193,44 @@ int main() {
     };
      
     for (int i = 0; i < 2; i++) {
-        std::shared_ptr<SC::Mesh> mesh = std::make_shared<SC::Mesh>(std::string("Cube"), vertices);
+        std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
         mesh->transform.Translate(cubePositions[i]);
         mesh->transform.Rotate(glm::vec3(45.f, 0.f, 0.f));
         //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
-        std::shared_ptr<SC::AABB> aabb = std::make_shared<SC::AABB>(mesh->vertices);
+        std::shared_ptr<AABB> aabb = std::make_shared<AABB>(mesh->vertices);
         aabb->CalculateMinMax(mesh->transform.model, true);
         mesh->AddComponent(aabb);
         mesh->SetShader(core->Engine->standart_render_shader);
         mesh->SetMaterial(mainColorMaterial);
-        core->Engine->Add_Object(std::static_pointer_cast<SC::Object>(mesh));
+        level->Add_Object(std::static_pointer_cast<Object>(mesh));
         std::cout << "X: " << mesh->transform.forward.x << " Y: " << mesh->transform.forward.y << " Z: " << mesh->transform.forward.z << std::endl;
     }
 
-    std::shared_ptr<SC::Mesh> mesh = std::make_shared<SC::Mesh>(std::string("Cube"), vertices);
+    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
     mesh->transform.Scale(glm::vec3(0.1f));
     mesh->transform.Translate(glm::vec3(-2, 1, 0));
-    std::shared_ptr<SC::AABB> aabb = std::make_shared<SC::AABB>(mesh->vertices);
+    std::shared_ptr<AABB> aabb = std::make_shared<AABB>(mesh->vertices);
     aabb->CalculateMinMax(mesh->transform.model, true);
     mesh->AddComponent(aabb);
     //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
     mesh->SetShader(core->Engine->standart_render_shader);
     mesh->SetMaterial(lightMaterial);
-    core->Engine->Add_Object(std::static_pointer_cast<SC::Object>(mesh));
+    level->Add_Object(std::static_pointer_cast<Object>(mesh));
 
-    std::shared_ptr<SC::Cone> cone = std::make_shared<SC::Cone>(0.3f, 0.1f);
+    std::shared_ptr<Cone> cone = std::make_shared<Cone>(0.3f, 0.1f);
     cone->transform.Translate(glm::vec3(2, 1, 0));
     //cone->aabb_box->CalculateMinMax(cone->transform.model, true);
     cone->SetShader(core->Engine->standart_render_shader);
-    core->Engine->Add_Object(std::static_pointer_cast<SC::Object>(cone));
+    level->Add_Object(std::static_pointer_cast<Object>(cone));
     
     
     light->transform.Translate(glm::vec3(-2, 1, 0));
 
 
-    std::shared_ptr<SC::Camera> cam1 = std::make_shared<SC::Camera>(core->Engine->window.width, core->Engine->window.height, 60.f, PERSPECTIVE);
+    std::shared_ptr<Camera> cam1 = std::make_shared<Camera>(core->Engine->window.width, core->Engine->window.height, 60.f, PERSPECTIVE);
     cam1->transform.Translate(glm::vec3(1,1,-1));
     core->Engine->level->main_cam = cam1;
+
 
     glViewport(0, 0, core->Engine->window.width, core->Engine->window.height);
     glEnable(GL_DEPTH_TEST);

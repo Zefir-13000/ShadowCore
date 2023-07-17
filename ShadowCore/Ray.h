@@ -1,6 +1,6 @@
 #pragma once
 #include "ssi.h"
-#include "RayObjects.h"
+#include "Component/RayObjects.h"
 
 namespace SC {
 

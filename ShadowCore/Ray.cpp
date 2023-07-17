@@ -1,11 +1,13 @@
 #include "Ray.h"
 
-SC::Ray::Ray(glm::vec3 origin, glm::vec3 direction) {
+using namespace SC;
+
+Ray::Ray(glm::vec3 origin, glm::vec3 direction) {
 	Ray::origin = origin;
 	Ray::direction = direction;
 }
 
-glm::vec3 SC::Ray::GetScreenToWorld(glm::vec2 mousePos, glm::vec2 ScreenSize, const glm::mat4& ProjectionMatrix, const glm::mat4& ViewMatrix, const glm::vec3& cameraPosition) {
+glm::vec3 Ray::GetScreenToWorld(glm::vec2 mousePos, glm::vec2 ScreenSize, const glm::mat4& ProjectionMatrix, const glm::mat4& ViewMatrix, const glm::vec3& cameraPosition) {
 	glm::mat4 invMat = glm::inverse(ProjectionMatrix * ViewMatrix);
 	glm::vec4 near_plane = glm::vec4((mousePos.x - (ScreenSize.x / 2)) / (ScreenSize.x / 2), -1 * (mousePos.y - (ScreenSize.y / 2)) / (ScreenSize.y / 2), -1, 1.0);
 	glm::vec4 far_plane = glm::vec4((mousePos.x - (ScreenSize.x / 2)) / (ScreenSize.x / 2), -1 * (mousePos.y - (ScreenSize.y / 2)) / (ScreenSize.y / 2), 1, 1.0);
@@ -17,7 +19,7 @@ glm::vec3 SC::Ray::GetScreenToWorld(glm::vec2 mousePos, glm::vec2 ScreenSize, co
 	return glm::normalize(dir);
 }
 
-float SC::Ray::RayIntersectsAABB(const AABB_Box& box, const glm::mat4& modelMatrix) {
+float Ray::RayIntersectsAABB(const AABB_Box& box, const glm::mat4& modelMatrix) {
 	float t1 = (box.min.x - Ray::origin.x) / Ray::direction.x;
 	float t2 = (box.max.x - Ray::origin.x) / Ray::direction.x;
 	float t3 = (box.min.y - Ray::origin.y) / Ray::direction.y;

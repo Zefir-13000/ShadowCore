@@ -22,7 +22,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include "Classes.h"
+#include "Core/Classes.h"
 
 constexpr auto PI = 3.141592654;
 
