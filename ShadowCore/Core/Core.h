@@ -23,12 +23,16 @@
 namespace SC {
 
 	class Core {
+	private:
+		Core() {};
+		~Core() {};
+
+		static bool Inited;
 	public:
 		static std::shared_ptr<EngineBase> Engine;
 		static std::shared_ptr<Editor> Editor;
 
-		Core();
-		~Core();
+		static void Init();
 	};
 
 };

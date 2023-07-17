@@ -122,8 +122,9 @@ EngineBase::EngineBase() {
 }
 
 int main() {
-    std::shared_ptr<Core> core = std::make_shared<Core>();
-    std::shared_ptr<Level> level = core->Engine->level;
+    Core::Init();
+    std::shared_ptr<EngineBase> enginePtr = Core::Engine;
+    std::shared_ptr<Level> level = enginePtr->level;
 
     std::shared_ptr<Texture> diffuse_tex1 = std::make_shared<Texture>("WhiteBrick.jpg", DIFFUSE);
     std::shared_ptr<Texture> diffuse_box = std::make_shared<Texture>("container2.png", DIFFUSE);
@@ -200,7 +201,7 @@ int main() {
         std::shared_ptr<AABB> aabb = std::make_shared<AABB>(mesh->vertices);
         aabb->CalculateMinMax(mesh->transform.model, true);
         mesh->AddComponent(aabb);
-        mesh->SetShader(core->Engine->standart_render_shader);
+        mesh->SetShader(enginePtr->standart_render_shader);
         mesh->SetMaterial(mainColorMaterial);
         level->Add_Object(std::static_pointer_cast<Object>(mesh));
         std::cout << "X: " << mesh->transform.forward.x << " Y: " << mesh->transform.forward.y << " Z: " << mesh->transform.forward.z << std::endl;
@@ -213,50 +214,50 @@ int main() {
     aabb->CalculateMinMax(mesh->transform.model, true);
     mesh->AddComponent(aabb);
     //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
-    mesh->SetShader(core->Engine->standart_render_shader);
+    mesh->SetShader(enginePtr->standart_render_shader);
     mesh->SetMaterial(lightMaterial);
     level->Add_Object(std::static_pointer_cast<Object>(mesh));
 
     std::shared_ptr<Cone> cone = std::make_shared<Cone>(0.3f, 0.1f);
     cone->transform.Translate(glm::vec3(2, 1, 0));
     //cone->aabb_box->CalculateMinMax(cone->transform.model, true);
-    cone->SetShader(core->Engine->standart_render_shader);
+    cone->SetShader(enginePtr->standart_render_shader);
     level->Add_Object(std::static_pointer_cast<Object>(cone));
     
     
     light->transform.Translate(glm::vec3(-2, 1, 0));
 
 
-    std::shared_ptr<Camera> cam1 = std::make_shared<Camera>(core->Engine->window.width, core->Engine->window.height, 60.f, PERSPECTIVE);
+    std::shared_ptr<Camera> cam1 = std::make_shared<Camera>(enginePtr->window.width, enginePtr->window.height, 60.f, PERSPECTIVE);
     cam1->transform.Translate(glm::vec3(1,1,-1));
-    core->Engine->level->main_cam = cam1;
+    level->main_cam = cam1;
 
 
-    glViewport(0, 0, core->Engine->window.width, core->Engine->window.height);
+    glViewport(0, 0, enginePtr->window.width, enginePtr->window.height);
     glEnable(GL_DEPTH_TEST);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // WireFrame
-    while (!glfwWindowShouldClose(core->Engine->window.GLFW_window))
+    while (!glfwWindowShouldClose(enginePtr->window.GLFW_window))
     {
-        core->Engine->InputProcess();
+        enginePtr->InputProcess();
 
-        core->Engine->standart_render_shader->Activate();
-        core->Engine->standart_render_shader->setMat4("view", cam1->view);
-        core->Engine->standart_render_shader->setMat4("projection", cam1->proj);
+        enginePtr->standart_render_shader->Activate();
+        enginePtr->standart_render_shader->setMat4("view", cam1->view);
+        enginePtr->standart_render_shader->setMat4("projection", cam1->proj);
 
-        core->Engine->standart_render_shader->setVec3("light.position", light->transform.position);
-        core->Engine->standart_render_shader->setVec3("light.AmbientStrength", glm::vec3(0.2f));
-        core->Engine->standart_render_shader->setVec3("light.DiffuseStrength", glm::vec3(0.5f));
-        core->Engine->standart_render_shader->setVec3("light.SpecularStrength", glm::vec3(1.0f));
-        core->Engine->standart_render_shader->setVec3("light.color", light->light_color);
-        
-        core->Engine->standart_render_shader->setVec3("viewPos", cam1->transform.position);
+        enginePtr->standart_render_shader->setVec3("light.position", light->transform.position);
+        enginePtr->standart_render_shader->setVec3("light.AmbientStrength", glm::vec3(0.2f));
+        enginePtr->standart_render_shader->setVec3("light.DiffuseStrength", glm::vec3(0.5f));
+        enginePtr->standart_render_shader->setVec3("light.SpecularStrength", glm::vec3(1.0f));
+        enginePtr->standart_render_shader->setVec3("light.color", light->light_color);
 
-        core->Engine->PreRender();
-        core->Engine->PostRender();
+        enginePtr->standart_render_shader->setVec3("viewPos", cam1->transform.position);
 
-        cam1->Movement(core->Engine->window.GLFW_window, core->Engine->window.width, core->Engine->window.height);
+        enginePtr->PreRender();
+        enginePtr->PostRender();
 
-        glfwSwapBuffers(core->Engine->window.GLFW_window);
+        cam1->Movement(enginePtr->window.GLFW_window, enginePtr->window.width, enginePtr->window.height);
+
+        glfwSwapBuffers(enginePtr->window.GLFW_window);
         glfwPollEvents();
     }
 

@@ -1,12 +1,15 @@
 #include "Core.h"
 
-std::shared_ptr<SC::EngineBase> SC::Core::Engine = nullptr;
-std::shared_ptr<SC::Editor> SC::Core::Editor = nullptr;
+using namespace SC;
 
-SC::Core::Core() {
+std::shared_ptr<EngineBase> Core::Engine = nullptr;
+std::shared_ptr<Editor> Core::Editor = nullptr;
+
+bool Core::Inited = false;
+
+void Core::Init() {
+	if (Inited)
+		return;
+
 	Engine = std::make_shared<EngineBase>();
-}
-
-SC::Core::~Core() {
-
 }
