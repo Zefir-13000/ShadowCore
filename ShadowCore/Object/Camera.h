@@ -9,11 +9,12 @@ namespace SC {
 	class Camera : public Object
 	{
 	private:
-		bool firstPress = false;
-		double lastMouseX = 0, lastMouseY = 0;
+		// none
 	public:
+		bool isActive = true;
 		float FOV = 60.f;
 		CameraType cam_type = PERSPECTIVE;
+		CameraMoveType cam_move_type = STATIC_CAM;
 
 		glm::mat4 view{}, proj{};
 		float near_plane = 0.1f, far_plane = 100.f;
@@ -22,13 +23,27 @@ namespace SC {
 
 		void UpdateProjection(int _width, int _height);
 		void UpdateView();
+		void SetActive(bool _isActive);
 
-		// movement
+		Camera(int _window_width, int _window_height, float _FOV = 60.f, CameraType _cam_type = PERSPECTIVE);
+		virtual ~Camera() {};
+	};
+
+	class FlyCamera : public Camera {
+	public:
+		// EDITOR ONLY
+		bool isWindowDocked = false;
+
+		bool firstPress = false;
+		double lastMouseX = 0, lastMouseY = 0;
+
 		float sensitivity = 0.001f;
 		float speed = 5.0f;
 		void Movement(GLFWwindow* _window, int _width, int _height);
 
-		Camera(int _window_width, int _window_height, float _FOV = 60.f, CameraType _cam_type = PERSPECTIVE);
+		FlyCamera(int _window_width, int _window_height, float _FOV = 60.f, CameraType _cam_type = PERSPECTIVE) : Camera(_window_width, _window_height, _FOV, _cam_type) {
+			cam_move_type = FLY_CAM;
+		};
 	};
 
 };

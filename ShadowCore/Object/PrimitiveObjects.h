@@ -15,7 +15,7 @@ namespace SC {
 
         void Render() override {
             if (RenderObject::Inited && RenderObject::render_shader != nullptr) {
-                if (Mesh::material != nullptr && Mesh::material->type == MATERIAL) {
+                if (Mesh::material != nullptr && Mesh::material->material_type == MATERIAL) {
                     std::shared_ptr<SMaterial> matColor = std::dynamic_pointer_cast<SMaterial>(Mesh::material);
 
                     Mesh::render_shader->setVec3("material.Ambient", matColor->Ambient);

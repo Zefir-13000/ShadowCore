@@ -12,9 +12,7 @@ namespace SC {
 
 	class EventHandler {
 	public:
-		static void size_callback(GLFWwindow* window, int width, int height) {
-			glViewport(0, 0, width, height);
-		}
+		static void size_callback(GLFWwindow* window, int width, int height);
 	};
 
 	struct Window {
@@ -23,7 +21,7 @@ namespace SC {
 	};
 
 
-	class EngineBase {
+	class Engine {
 	public:
 		Window window;
 		std::unique_ptr<EventHandler> eventHandler = std::make_unique<EventHandler>();
@@ -34,7 +32,7 @@ namespace SC {
 
 		void Init();
 		void Init_Shaders();
-		void EngineLoop();
+		void Tick();
 		virtual void PostInit();
 
 		virtual void PreRender();
@@ -42,8 +40,8 @@ namespace SC {
 		virtual void InputProcess();
 
 
-		EngineBase();
-		~EngineBase() {}
+		Engine();
+		~Engine() {}
 	};
 
 };

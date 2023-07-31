@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Editor.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +152,9 @@
     <None Include="Shaders\Base.vert" />
     <None Include="Shaders\Debug.frag" />
     <None Include="Shaders\Debug.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Editor.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

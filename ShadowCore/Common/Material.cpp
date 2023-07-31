@@ -2,9 +2,9 @@
 using namespace SC;
 
 MaterialType Material::GetType() {
-	return Material::type;
+	return Material::material_type;
 }
 
 SMaterial::SMaterial() {
-	SMaterial::type = MATERIAL;
+	SMaterial::material_type = SMATERIAL;
 }

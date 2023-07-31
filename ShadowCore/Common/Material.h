@@ -7,7 +7,7 @@ namespace SC {
 	class Material
 	{
 	public:
-		MaterialType type = MATERIAL;
+		MaterialType material_type = MATERIAL;
 
 		virtual MaterialType GetType();
 

@@ -25,7 +25,7 @@ void SC::Model::Render() {
     if (Model::Inited && Model::render_shader != nullptr) {
         Model::render_shader->Activate();
 
-        if (Model::material != nullptr && Model::material->type == MATERIAL) {
+        if (Model::material != nullptr && Model::material->material_type == MATERIAL) {
             std::shared_ptr<SMaterial> matColor = std::dynamic_pointer_cast<SMaterial>(Model::material);
 
             Model::render_shader->setVec3("material.Ambient", matColor->Ambient);

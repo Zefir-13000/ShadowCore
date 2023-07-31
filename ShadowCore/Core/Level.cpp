@@ -13,3 +13,13 @@ void Level::Add_Object(std::shared_ptr<Object> _object) {
 void Level::Destroy_Object(std::shared_ptr<Object> object) {
 	Level::objects.erase(std::remove(Level::objects.begin(), Level::objects.end(), object), Level::objects.end());
 }
+
+void Level::Render() {
+	for (std::shared_ptr<Object> object : objects) {
+		if (object->type == MESH) {
+			std::shared_ptr<Mesh> rd = std::dynamic_pointer_cast<Mesh>(object);
+
+			rd->Render();
+		}
+	}
+}

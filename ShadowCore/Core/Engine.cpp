@@ -1,13 +1,25 @@
 #include "Engine.h"
+#include "Core/Core.h"
 
 using namespace SC;
 
-void EngineBase::Init_Shaders() {
-	EngineBase::standart_render_shader = std::make_shared<SC::Shader>("Base");
-	EngineBase::debug_shader = std::make_shared<SC::Shader>("Debug");
+void EventHandler::size_callback(GLFWwindow* window, int width, int height) {
+	if (!Core::isEnableEditor)
+		glViewport(0, 0, width, height);
 }
 
-void EngineBase::Init() {
+Engine::Engine() {
+	Init();
+	Init_Shaders();
+	PostInit();
+}
+
+void Engine::Init_Shaders() {
+	Engine::standart_render_shader = std::make_shared<SC::Shader>("Base");
+	Engine::debug_shader = std::make_shared<SC::Shader>("Debug");
+}
+
+void Engine::Init() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -26,7 +38,7 @@ void EngineBase::Init() {
 
 	glfwSetWindowUserPointer(window.GLFW_window, this);
 	glfwSetFramebufferSizeCallback(window.GLFW_window, [](GLFWwindow* window, int width, int height) {
-		EngineBase* engine = static_cast<EngineBase*>(glfwGetWindowUserPointer(window));
+		Engine* engine = static_cast<Engine*>(glfwGetWindowUserPointer(window));
 		engine->window.width = width;
 		engine->window.height = height;
 
@@ -45,7 +57,7 @@ void EngineBase::Init() {
 	}
 }
 
-void EngineBase::EngineLoop()
+void Engine::Tick()
 {
 	STime::UpdateTime(static_cast<float>(glfwGetTime()));
 }

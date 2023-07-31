@@ -2,7 +2,6 @@
 #include "ssi.h"
 
 #include "Core/Engine.h"
-#include "Core/Editor.h"
 #include "Core/Level.h"
 
 #include "Common/Material.h"
@@ -29,8 +28,8 @@ namespace SC {
 
 		static bool Inited;
 	public:
-		static std::shared_ptr<EngineBase> Engine;
-		static std::shared_ptr<Editor> Editor;
+		static bool isEnableEditor;
+		static std::shared_ptr<Engine> Engine;
 
 		static void Init();
 	};

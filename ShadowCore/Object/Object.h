@@ -6,11 +6,11 @@ constexpr int MAXLEN_OBJECT_NAME = 255;
 
 namespace SC {
 
-	class EngineBase;
+	class Engine;
 	class Object : public std::enable_shared_from_this<Object>
 	{
 	protected:
-		std::shared_ptr<EngineBase> enginePtr = nullptr;
+		std::shared_ptr<Engine> enginePtr = nullptr;
 	public:
 		std::vector<std::shared_ptr<Component>> components;
 

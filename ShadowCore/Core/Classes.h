@@ -27,12 +27,18 @@ enum LightType {
 
 enum MaterialType {
 	MATERIAL = 0,
+	SMATERIAL = 1,
 	SHADER = 3
 };
 
 enum CameraType {
 	PERSPECTIVE = 0,
 	ORTHOGRAPHIC = 1
+};
+
+enum CameraMoveType {
+	STATIC_CAM = 0,
+	FLY_CAM = 1
 };
 
 enum MeshType {
@@ -54,7 +60,9 @@ static const char* RenderTypeStr[] = {
 };
 
 enum TextureTypes {
-	DIFFUSE = 0,
+	NULL_TEX = 0,
+	DIFFUSE = 1,
 	SPECULAR = 1,
 	EMISSION = 2,
+	RENDER_TEXTURE = 3,
 };
