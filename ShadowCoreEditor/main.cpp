@@ -29,50 +29,8 @@ int main() {
     lightMaterial->Ambient = glm::vec3(1.0f);
     lightMaterial->Emission = glm::vec3(1.0f);
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>(glm::vec3(1.0f), 1.0f);
+    light->transform.Translate(glm::vec3(-2, 1, 0));
 
-    std::shared_ptr<std::vector<float>> vertices = std::make_shared<std::vector<float>>(std::initializer_list<float>{
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,   0.0f,  0.0f, -1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,   0.0f,  0.0f, -1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,   0.0f,  0.0f, -1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,   0.0f,  0.0f, -1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,   0.0f,  0.0f, -1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,   0.0f,  0.0f, -1.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,   0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,   0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,   0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,   0.0f,  0.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,   0.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,   0.0f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,   -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,   -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   -1.0f,  0.0f,  0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,   1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   1.0f,  0.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,   1.0f,  0.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   1.0f,  0.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,   0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,   0.0f, -1.0f,  0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,   0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,   0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,   0.0f, -1.0f,  0.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,   0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,   0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   0.0f,  1.0f,  0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,   0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,   0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,   0.0f,  1.0f,  0.0f,
-    });
 
     glm::vec3 cubePositions[] = {
         glm::vec3(1.0f,  0.0f,  0.0f),
@@ -80,38 +38,37 @@ int main() {
     };
      
     for (int i = 0; i < 2; i++) {
-        std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
+        std::shared_ptr<Cube> mesh = std::make_shared<Cube>();
         mesh->transform.Translate(cubePositions[i]);
         mesh->transform.Rotate(glm::vec3(45.f, 0.f, 0.f));
         //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
-        std::shared_ptr<AABB> aabb = std::make_shared<AABB>(mesh->vertices);
-        aabb->CalculateMinMax(mesh->transform.model, true);
-        mesh->AddComponent(aabb);
+        mesh->AddComponent<AABB>();
         mesh->SetShader(enginePtr->standart_render_shader);
         mesh->SetMaterial(mainColorMaterial);
-        level->Add_Object(std::static_pointer_cast<Object>(mesh));
+        level->Add_Object(mesh);
+        std::cout << "Id mesh: " << mesh->getId() << std::endl;
         std::cout << "X: " << mesh->transform.forward.x << " Y: " << mesh->transform.forward.y << " Z: " << mesh->transform.forward.z << std::endl;
     }
 
-    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(std::string("Cube"), vertices);
+    std::shared_ptr<Cube> mesh = std::make_shared<Cube>();
     mesh->transform.Scale(glm::vec3(0.1f));
     mesh->transform.Translate(glm::vec3(-2, 1, 0));
-    std::shared_ptr<AABB> aabb = std::make_shared<AABB>(mesh->vertices);
-    aabb->CalculateMinMax(mesh->transform.model, true);
-    mesh->AddComponent(aabb);
+    mesh->AddComponent<AABB>();
+    std::cout << "Id mesh: " << mesh->getId() << std::endl;
     //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
     mesh->SetShader(enginePtr->standart_render_shader);
     mesh->SetMaterial(lightMaterial);
-    level->Add_Object(std::static_pointer_cast<Object>(mesh));
+    level->Add_Object(mesh);
 
     std::shared_ptr<Cone> cone = std::make_shared<Cone>(0.3f, 0.1f);
     cone->transform.Translate(glm::vec3(2, 1, 0));
+    cone->AddComponent<AABB>(); // ->CalculateMinMax(cone->transform.model, true);
+    std::cout << "Id cone: " << cone->getId() << std::endl;
     //cone->aabb_box->CalculateMinMax(cone->transform.model, true);
     cone->SetShader(enginePtr->standart_render_shader);
-    level->Add_Object(std::static_pointer_cast<Object>(cone));
+    level->Add_Object(cone);
     
     
-    light->transform.Translate(glm::vec3(-2, 1, 0));
 
 
     glViewport(0, 0, enginePtr->window.width, enginePtr->window.height);

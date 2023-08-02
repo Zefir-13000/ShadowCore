@@ -1,27 +1,20 @@
 #include "Mesh.h"
+#include "Core/Core.h"
 
-SC::Mesh::Mesh(std::string _name, std::shared_ptr<std::vector<float>> _vertices) : RenderObject(_name, _vertices) {
-    type = MESH;
+using namespace SC;
+
+Mesh::Mesh(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type = USELESS) : RenderObject(_name, _geom_data, _u_type) {
+    Mesh::type = MESH;
+    Mesh::u_type = _u_type;
 }
 
-SC::Mesh::Mesh(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices) : RenderObject(_name, _vertices) {
-    type = MESH;
+void Mesh::SetMaterial(std::shared_ptr<Material> _material) {
+    Mesh::material = _material;
 }
 
-SC::Mesh::Mesh(std::string _name, std::shared_ptr<std::vector<float>> _vertices, UseLessType _u_type) : RenderObject(_name, _vertices) {
-    type = MESH;
-}
-
-SC::Mesh::Mesh(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices, UseLessType _u_type) : RenderObject(_name, _vertices) {
-    type = MESH;
-}
-
-void SC::Mesh::SetMaterial(std::shared_ptr<Material> material) {
-    Mesh::material = material;
-}
-
-void SC::Mesh::Render() {
-    RenderComponents();
+void Mesh::Render() {
+    if (Core::isEnableEditor && this->getId() == Core::selected_ObjectID)
+        RenderComponents();
     if (Mesh::Inited && Mesh::render_shader != nullptr) {
         Mesh::render_shader->Activate();
 
@@ -70,21 +63,22 @@ void SC::Mesh::Render() {
             Mesh::render_shader->setInt("has_specular_texture", 0);
             Mesh::render_shader->setInt("has_emission_texture", 0);
         }
-
+        
         Mesh::render_shader->setMat4("model", Mesh::transform.model);
         //RenderObject::render_shader->setMat4("projection", enginePtr->level->main_cam->proj);
         //RenderObject::render_shader->setMat4("view", enginePtr->level->main_cam->view);
 
         glBindVertexArray(VAO);
-        if (Mesh::render_type == ELEMENT) {
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(Mesh::indices_count), GL_UNSIGNED_INT, 0);
+        if (Mesh::geometry_data->render_type == ELEMENT) {
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(Mesh::geometry_data->indices_count), GL_UNSIGNED_INT, 0);
         }
-        else if (Mesh::render_type == ARRAY) {
-            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(Mesh::vertices_count));
+        else if (Mesh::geometry_data->render_type == ARRAY) {
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(Mesh::geometry_data->vertices_count));
         }
         glBindVertexArray(0);
     }
     else if (Mesh::render_shader == nullptr) {
-        std::cerr << "ERROR::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
+        std::cerr << "WARNING::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
+        RenderObject::render_shader = enginePtr->standart_render_shader;
     }
 }

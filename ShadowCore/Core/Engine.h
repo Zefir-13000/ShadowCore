@@ -8,6 +8,8 @@
 #include "Common/Texture.h"
 #include "Utils/STime.h"
 
+#include <functional>
+
 namespace SC {
 
 	class EventHandler {
@@ -22,6 +24,9 @@ namespace SC {
 
 
 	class Engine {
+	private:
+		using EngineFunctionPtr = std::function<void(Engine*)>;
+		EngineFunctionPtr preRenderFunction = &Engine::DefaultPreRender, postRenderFunction = &Engine::DefaultPostRender;
 	public:
 		Window window;
 		std::unique_ptr<EventHandler> eventHandler = std::make_unique<EventHandler>();
@@ -35,10 +40,25 @@ namespace SC {
 		void Tick();
 		virtual void PostInit();
 
-		virtual void PreRender();
-		virtual void PostRender();
+		virtual void DefaultPreRender();
+		virtual void DefaultPostRender();
+
+		void PreRender() {
+			preRenderFunction(this);
+		}
+		void PostRender() {
+			postRenderFunction(this);
+		}
+
 		virtual void InputProcess();
 
+		
+		void SetPreRenderPtr(EngineFunctionPtr functionPtr) {
+			preRenderFunction = functionPtr;
+		}
+		void SetPostRenderPtr(EngineFunctionPtr functionPtr) {
+			postRenderFunction = functionPtr;
+		}
 
 		Engine();
 		~Engine() {}

@@ -1,26 +1,14 @@
 #include "Model.h"
+#include "Core/Engine.h"
 
-SC::Model::Model(std::string _name, std::shared_ptr<std::vector<float>> _vertices) : Mesh(_name, _vertices) {
-    type = MESH;
-    Model::vertices = ArrayToVertex(_vertices);
+using namespace SC;
+
+Model::Model(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type) : Mesh(_name, _geom_data, _u_type) {
+    Model::type = MESH;
+    Model::meshType = MODEL_TYPE;
 }
 
-SC::Model::Model(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices) : Mesh(_name, _vertices) {
-    type = MESH;
-    Model::vertices = _vertices;
-}
-
-SC::Model::Model(std::string _name, std::shared_ptr<std::vector<float>> _vertices, UseLessType _u_type) : Mesh(_name, _vertices) {
-    type = MESH;
-    Model::vertices = ArrayToVertex(_vertices);
-}
-
-SC::Model::Model(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices, UseLessType _u_type) : Mesh(_name, _vertices) {
-    type = MESH;
-    Model::vertices = _vertices;
-}
-
-void SC::Model::Render() {
+void Model::Render() {
 
     if (Model::Inited && Model::render_shader != nullptr) {
         Model::render_shader->Activate();
@@ -76,15 +64,16 @@ void SC::Model::Render() {
         //RenderObject::render_shader->setMat4("view", enginePtr->level->main_cam->view);
 
         glBindVertexArray(VAO);
-        if (Model::render_type == ELEMENT) {
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(Model::indices_count), GL_UNSIGNED_INT, 0);
+        if (Model::geometry_data->render_type == ELEMENT) {
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(Model::geometry_data->indices_count), GL_UNSIGNED_INT, 0);
         }
-        else if (Model::render_type == ARRAY) {
-            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(Model::vertices_count));
+        else if (Model::geometry_data->render_type == ARRAY) {
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(Model::geometry_data->vertices_count));
         }
         glBindVertexArray(0);
     }
     else if (Model::render_shader == nullptr) {
         std::cerr << "ERROR::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
+        Model::render_shader = enginePtr->standart_render_shader;
     }
 }

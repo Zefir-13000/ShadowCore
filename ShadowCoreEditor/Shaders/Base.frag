@@ -60,14 +60,20 @@ void main()
     }
 
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
 
-    if (has_specular_texture == 1) {
-        specular = light.SpecularStrength * spec * vec3(texture(specular_texture, TexCoords));
+    if (dot(norm, lightDir) > 0) {
+        vec3 reflectDir = reflect(-lightDir, norm);  
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.Shininess);
+
+        if (has_specular_texture == 1) {
+            specular = light.SpecularStrength * spec * vec3(texture(specular_texture, TexCoords));
+        }
+        else {
+            specular = light.SpecularStrength * (spec * material.Specular); 
+        }
     }
     else {
-        specular = light.SpecularStrength * (spec * material.Specular); 
+        specular = vec3(0);
     }
 
     if (has_emission_texture == 1) {

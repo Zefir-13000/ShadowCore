@@ -3,6 +3,7 @@
 using namespace SC;
 
 bool Core::isEnableEditor = false;
+uint64_t Core::selected_ObjectID = 0;
 std::shared_ptr<Engine> Core::Engine = nullptr;
 
 bool Core::Inited = false;

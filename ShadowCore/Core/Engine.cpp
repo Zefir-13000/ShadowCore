@@ -8,7 +8,7 @@ void EventHandler::size_callback(GLFWwindow* window, int width, int height) {
 		glViewport(0, 0, width, height);
 }
 
-Engine::Engine() {
+Engine::Engine() : preRenderFunction(std::bind(&Engine::DefaultPreRender, this)) {
 	Init();
 	Init_Shaders();
 	PostInit();
@@ -55,6 +55,19 @@ void Engine::Init() {
 		std::cout << "Failed to init GLEW!" << std::endl;
 		return;
 	}
+}
+
+void Engine::DefaultPreRender() {
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	level->Render();
+
+	Engine::Tick();
+}
+
+void Engine::DefaultPostRender() {
+
 }
 
 void Engine::Tick()

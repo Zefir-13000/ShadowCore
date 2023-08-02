@@ -3,4 +3,7 @@
 
 using namespace SC;
 
-static std::shared_ptr<RenderTexture> viewport = nullptr;
+namespace SC::Editor {
+	static std::shared_ptr<RenderTexture> viewport = nullptr;
+	static uint64_t selected_ObjectID = 0;
+}

@@ -1,4 +1,14 @@
 #include "RayObjects.h"
+#include "Core/Core.h"
+using namespace SC;
+
+AABB::AABB(std::shared_ptr<Object> _object) {
+    component_type = RENDER_COMPONENT;
+    if (_object->type == MESH || _object->type == RENDER_OBJECT) {
+        box_debug_mesh = std::make_shared<RenderObject>("AABB", BuildAABB_Box(std::dynamic_pointer_cast<RenderObject>(_object)->geometry_data), USEFUL);
+        CalculateMinMax(std::dynamic_pointer_cast<RenderObject>(_object)->transform.model, true);
+    }
+}
 
 std::shared_ptr<std::vector<uint32_t>> aabbIndices = std::make_shared<std::vector<uint32_t>>(std::initializer_list<uint32_t>{
     0, 1, 2, // Front face
@@ -15,16 +25,15 @@ std::shared_ptr<std::vector<uint32_t>> aabbIndices = std::make_shared<std::vecto
     6, 7, 3
 });
 
-using namespace SC;
 
-std::shared_ptr<std::vector<Vertex>> AABB::BuildAABB_Box(std::shared_ptr<std::vector<Vertex>> _vertices) {
+std::shared_ptr<GeometryData> AABB::BuildAABB_Box(std::shared_ptr<GeometryData> _geom_data) {
     float minX = std::numeric_limits<float>::infinity();
     float minY = std::numeric_limits<float>::infinity();
     float minZ = std::numeric_limits<float>::infinity();
     float maxX = -std::numeric_limits<float>::infinity();
     float maxY = -std::numeric_limits<float>::infinity();
     float maxZ = -std::numeric_limits<float>::infinity();
-    for (Vertex& v : *_vertices) {
+    for (Vertex& v : *_geom_data->vertices) {
         glm::vec3 pos = v.position;
         if (pos.x < minX) minX = pos.x;
         if (pos.y < minY) minY = pos.y;
@@ -52,13 +61,9 @@ std::shared_ptr<std::vector<Vertex>> AABB::BuildAABB_Box(std::shared_ptr<std::ve
     });
 
     std::shared_ptr<std::vector<Vertex>> res = RenderObject::ArrayToVertexPositionOnly(aabbVertices);
+    std::shared_ptr<GeometryData> geom_data = std::make_shared<GeometryData>(res, aabbIndices);
 
-    return res;
-}
-
-std::shared_ptr<std::vector<Vertex>> AABB::BuildAABB_Box(std::shared_ptr<std::vector<float>> _vertices) {
-    std::shared_ptr<std::vector<Vertex>> vertices = RenderObject::ArrayToVertex(_vertices);
-    return AABB::BuildAABB_Box(vertices);
+    return geom_data;
 }
 
 AABB_Box AABB::CalculateMinMax(glm::mat4 model, bool rebuild = false) {
@@ -95,10 +100,7 @@ AABB_Box AABB::CalculateMinMax(glm::mat4 model, bool rebuild = false) {
 }
 
 void AABB::ReBuildAABB_Box() {
-    glDeleteVertexArrays(1, &box_debug_mesh->VAO);
-    glDeleteBuffers(1, &box_debug_mesh->VBO);
-    glDeleteBuffers(1, &box_debug_mesh->EBO);
-    box_debug_mesh->Inited = false;
+    box_debug_mesh->UnInitialize();
 
     std::shared_ptr<std::vector<float>> aabbVertices = std::make_shared<std::vector<float>>(std::initializer_list<float>{
        box.min.x, box.min.y, box.min.z,
@@ -112,6 +114,8 @@ void AABB::ReBuildAABB_Box() {
     });
 
     std::shared_ptr<std::vector<Vertex>> res = RenderObject::ArrayToVertexPositionOnly(aabbVertices);
+    box_debug_mesh->geometry_data->vertices = res;
+    box_debug_mesh->geometry_data->vertices_count = res->size();
 
-    box_debug_mesh->Initialize(res, aabbIndices);
+    box_debug_mesh->Initialize(box_debug_mesh->geometry_data);
 }

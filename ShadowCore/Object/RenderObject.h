@@ -2,24 +2,24 @@
 #include "ssi.h"
 #include "Object/Object.h"
 #include "Common/Shader.h"
+#include "Common/Transform.h"
 
 namespace SC {
 
 	class RenderObject : public Object {
 	public:
 		uint32_t VAO = 0, VBO = 0, EBO = 0;
-		size_t vertices_count = 0, indices_count = 0;
-		RenderType render_type;
 		bool Inited = false;
 
 		static std::shared_ptr<std::vector<Vertex>> ArrayToVertex(std::shared_ptr<std::vector<float>> _arr);
 		static std::shared_ptr<std::vector<Vertex>> ArrayToVertexPositionOnly(std::shared_ptr<std::vector<float>> _arr);
 
-		std::shared_ptr<std::vector<Vertex>> vertices;
-		std::shared_ptr<std::vector<uint32_t>> indices;
+		std::shared_ptr<GeometryData> geometry_data = nullptr;
 
 	public:
 		std::shared_ptr<Shader> render_shader;
+
+		Transform local_transform, transform;
 
 		virtual ~RenderObject() {
 			glDeleteVertexArrays(1, &VAO);
@@ -27,18 +27,11 @@ namespace SC {
 			glDeleteBuffers(1, &EBO);
 		}
 
-		void Initialize(std::shared_ptr<std::vector<Vertex>> _vertices, std::shared_ptr<std::vector<uint32_t>> _indices);
-		void Initialize(std::shared_ptr<std::vector<Vertex>> _vertices);
+		void Initialize(std::shared_ptr<GeometryData> _geom_data);
+		void UnInitialize();
 
-		RenderObject(std::shared_ptr<std::vector<float>> _vertices, std::shared_ptr<std::vector<uint32_t>> _indices);
-		RenderObject(std::shared_ptr<std::vector<float>> _vertices);
-		RenderObject(std::shared_ptr<std::vector<Vertex>> _vertices);
-		RenderObject(std::shared_ptr<std::vector<Vertex>> _vertices, std::shared_ptr<std::vector<uint32_t>> _indices);
-
-		RenderObject(std::string _name, std::shared_ptr<std::vector<float>> _vertices, std::shared_ptr<std::vector<uint32_t>> _indices);
-		RenderObject(std::string _name, std::shared_ptr<std::vector<float>> _vertices);
-		RenderObject(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices);
-		RenderObject(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices, std::shared_ptr<std::vector<uint32_t>> _indices);
+		RenderObject(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type);
+		RenderObject(std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type);
 
 		virtual void Render();
 		virtual void RenderComponents();

@@ -10,6 +10,7 @@ namespace SC {
 	public:
 		Level(std::string level_name);
 		void Add_Object(std::shared_ptr<Object> object);
+		template <class T, class... Args> void Add_Object(Args&&... args);
 		void Destroy_Object(std::shared_ptr<Object> object);
 
 		void Render();

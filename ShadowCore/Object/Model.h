@@ -9,10 +9,6 @@ namespace SC {
     public:
         void Render() override;
 
-        Model(std::string _name, std::shared_ptr<std::vector<float>> _vertices);
-        Model(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices);
-
-        Model(std::string _name, std::shared_ptr<std::vector<float>> _vertices, UseLessType _u_type);
-        Model(std::string _name, std::shared_ptr<std::vector<Vertex>> _vertices, UseLessType _u_type);
+        Model(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type);
     };
 };

@@ -4,69 +4,25 @@
 
 namespace SC {
 
+    extern std::shared_ptr<std::vector<uint32_t>> CubeIndices;
+    class Cube : public Mesh {
+    private:
+        std::shared_ptr<GeometryData> MakeCube(float _width, float _height, float _depth);
+    public:
+        Cube(float _width = 1.f, float _height = 1.f, float _depth = 1.f) : Mesh("Cube", MakeCube(_width, _height, _depth), MANDATORY) {
+            Cube::type = MESH;
+            Cube::meshType = CUBE_TYPE;
+        }
+    };
+
+    constexpr int CONE_SEGMENTS = 18;
     class Cone : public Mesh {
     private:
-        std::shared_ptr<std::vector<Vertex>> MakeCone(float _height, float _radius);
+        std::shared_ptr<GeometryData> MakeCone(float _height, float _radius);
     public:
-        Cone(float _height, float _radius) : Mesh("Cone", MakeCone(_height, _radius), MANDATORY) {
+        Cone(float _height = 1.f, float _radius = 1.f) : Mesh("Cone", MakeCone(_height, _radius), MANDATORY) {
             Cone::type = MESH;
             Cone::meshType = CONE_TYPE;
-        }
-
-        void Render() override {
-            if (RenderObject::Inited && RenderObject::render_shader != nullptr) {
-                if (Mesh::material != nullptr && Mesh::material->material_type == MATERIAL) {
-                    std::shared_ptr<SMaterial> matColor = std::dynamic_pointer_cast<SMaterial>(Mesh::material);
-
-                    Mesh::render_shader->setVec3("material.Ambient", matColor->Ambient);
-                    Mesh::render_shader->setVec3("material.Diffuse", matColor->Diffuse);
-                    Mesh::render_shader->setVec3("material.Specular", matColor->Specular);
-                    Mesh::render_shader->setVec3("material.Emission", matColor->Emission);
-                    Mesh::render_shader->setFloat("material.Shininess", matColor->Shininess);
-
-                    if (matColor->diffuse_texture != nullptr) {
-                        Mesh::render_shader->setInt("has_diffuse_texture", 1);
-                        Mesh::render_shader->setInt("diffuse_texture", 0);
-                        matColor->diffuse_texture->Bind(Mesh::render_shader, 0);
-                    }
-                    else {
-                        Mesh::render_shader->setInt("has_diffuse_texture", 0);
-                    }
-                    if (matColor->specular_texture != nullptr) {
-                        Mesh::render_shader->setInt("has_specular_texture", 1);
-                        Mesh::render_shader->setInt("specular_texture", 1);
-                        matColor->specular_texture->Bind(Mesh::render_shader, 1);
-                    }
-                    else {
-                        Mesh::render_shader->setInt("has_specular_texture", 0);
-                    }
-                    if (matColor->emission_texture != nullptr) {
-                        Mesh::render_shader->setInt("has_emission_texture", 1);
-                        Mesh::render_shader->setInt("emission_texture", 2);
-                        matColor->emission_texture->Bind(Mesh::render_shader, 2);
-                    }
-                    else {
-                        Mesh::render_shader->setInt("has_emission_texture", 0);
-                    }
-                }
-                else {
-                    Mesh::render_shader->setVec3("material.Ambient", glm::vec3(0.1f));
-                    Mesh::render_shader->setVec3("material.Diffuse", glm::vec3(1.f));
-                    Mesh::render_shader->setVec3("material.Specular", glm::vec3(0.5f));
-                    Mesh::render_shader->setVec3("material.Emission", glm::vec3(0.0f));
-                    Mesh::render_shader->setFloat("material.Shininess", 32.f);
-
-                    Mesh::render_shader->setInt("has_diffuse_texture", 0);
-                    Mesh::render_shader->setInt("has_specular_texture", 0);
-                    Mesh::render_shader->setInt("has_emission_texture", 0);
-                }
-
-                Mesh::render_shader->setMat4("model", Mesh::transform.model);
-
-                glBindVertexArray(VAO);
-                glDrawArrays(GL_TRIANGLE_FAN, 0, static_cast<GLsizei>(vertices_count));
-                glBindVertexArray(0);
-            }
         }
     };
 
@@ -74,7 +30,7 @@ namespace SC {
 
     class Line : public Mesh {
     private:
-        std::shared_ptr<std::vector<Vertex>> ConvertPosToLine(glm::vec3 _startPos, glm::vec3 _endPos);
+        std::shared_ptr<GeometryData> ConvertPosToLine(glm::vec3 _startPos, glm::vec3 _endPos);
     public:
         Line(glm::vec3 _startPos, glm::vec3 _endPos) : Mesh("Line", ConvertPosToLine(_startPos, _endPos), USEFUL) {
             Line::type = MESH;
@@ -100,7 +56,7 @@ namespace SC {
     private:
         float point_size = 1.f;
 
-        std::shared_ptr<std::vector<Vertex>> ConvertPosToPoint(glm::vec3 _Pos);
+        std::shared_ptr<GeometryData> ConvertPosToPoint(glm::vec3 _Pos);
     public:
         Point(glm::vec3 _pos, float _size) : Mesh("Point", ConvertPosToPoint(_pos), USEFUL) {
             Point::type = MESH;

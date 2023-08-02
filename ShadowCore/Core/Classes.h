@@ -8,6 +8,7 @@ enum ObjectType {
 	LIGHT = 5
 };
 
+// Object usefulness
 enum UseLessType {
 	USELESS = 0,
 	USEFUL = 1,
@@ -47,6 +48,7 @@ enum MeshType {
 	CONE_TYPE = 2,
 	LINE_TYPE = 3,
 	POINT_TYPE = 4,
+	CUBE_TYPE = 5,
 };
 
 enum RenderType {

@@ -1,37 +1,17 @@
 #include "Editor.h"
 using namespace SC;
 
-void Engine::PostInit() {
-    Core::isEnableEditor = true;
-    std::cout << "ENABLE_EDITOR: " << Core::isEnableEditor << std::endl;
-    viewport = std::make_shared<RenderTexture>(1, 1, level->main_cam);
-
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
-
-    ImGui_ImplGlfw_InitForOpenGL(window.GLFW_window, true);
-    ImGui_ImplOpenGL3_Init("#version 330 core");
-}
-
-void Engine::PreRender() {
+void CustomPreRender(Engine* engine) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //level->Render();
 
-    Engine::Tick();
+    engine->Tick();
 }
 
 
-void Engine::PostRender() {
+void CustomPostRender(Engine* engine) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -60,7 +40,7 @@ void Engine::PostRender() {
 
 
     ImVec2 view = ImGui::GetContentRegionAvail();
-    if (view.x != viewport->size_x || view.y != viewport->size_y)
+    if (view.x != Editor::viewport->size_x || view.y != Editor::viewport->size_y)
     {
         if (view.x == 0 || view.y == 0)
         {
@@ -70,15 +50,15 @@ void Engine::PostRender() {
 
         // The window state has been successfully changed.
         glViewport(0, 0, view.x, view.y);
-        viewport->RecreateFB(view.x, view.y);
-        level->main_cam->UpdateProjection(view.x, view.y);
+        Editor::viewport->RecreateFB(view.x, view.y);
+        engine->level->main_cam->UpdateProjection(view.x, view.y);
         std::cout << "RecreateFB!\n";
     }
 
-    viewport->Render();
-    ImGui::Image((void*)viewport->GetTextureID(), ImVec2(viewport->size_x, viewport->size_y), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
-    level->main_cam->SetActive(ImGui::IsItemHovered());
-    if (level->main_cam->cam_move_type == FLY_CAM && Core::isEnableEditor && !ImGui::IsWindowDocked()) {
+    Editor::viewport->Render();
+    ImGui::Image((void*)Editor::viewport->GetTextureID(), ImVec2(Editor::viewport->size_x, Editor::viewport->size_y), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+    engine->level->main_cam->SetActive(ImGui::IsItemHovered());
+    if (engine->level->main_cam->cam_move_type == FLY_CAM && Core::isEnableEditor && !ImGui::IsWindowDocked()) {
         ImVec2 vMin0 = ImGui::GetWindowContentRegionMin();
         ImVec2 vMax0 = ImGui::GetWindowContentRegionMax();
 
@@ -89,23 +69,42 @@ void Engine::PostRender() {
 
         ImVec2 vMiddle0 = vMin0.Add(vMax0).Divide(2);
 
-        std::dynamic_pointer_cast<FlyCamera>(level->main_cam)->isWindowDocked = true;
-        std::dynamic_pointer_cast<FlyCamera>(level->main_cam)->lastMouseX = (int)vMiddle0.x;
-        std::dynamic_pointer_cast<FlyCamera>(level->main_cam)->lastMouseY = (int)vMiddle0.y;
+        std::dynamic_pointer_cast<FlyCamera>(engine->level->main_cam)->isWindowDocked = true;
+        std::dynamic_pointer_cast<FlyCamera>(engine->level->main_cam)->lastMouseX = (int)vMiddle0.x;
+        std::dynamic_pointer_cast<FlyCamera>(engine->level->main_cam)->lastMouseY = (int)vMiddle0.y;
     }
-    else if (level->main_cam->cam_move_type == FLY_CAM && Core::isEnableEditor) {
+    else if (engine->level->main_cam->cam_move_type == FLY_CAM && Core::isEnableEditor) {
         ImVec2 viewMin = ImGui::GetWindowPos(); // view;
         ImVec2 viewCenter = viewMin.Add(view).Add(viewMin).Divide(2);
 
-        std::dynamic_pointer_cast<FlyCamera>(level->main_cam)->isWindowDocked = false;
-        std::dynamic_pointer_cast<FlyCamera>(level->main_cam)->lastMouseX = (int)viewCenter.x;
-        std::dynamic_pointer_cast<FlyCamera>(level->main_cam)->lastMouseY = (int)viewCenter.y;
+        std::dynamic_pointer_cast<FlyCamera>(engine->level->main_cam)->isWindowDocked = false;
+        std::dynamic_pointer_cast<FlyCamera>(engine->level->main_cam)->lastMouseX = (int)viewCenter.x;
+        std::dynamic_pointer_cast<FlyCamera>(engine->level->main_cam)->lastMouseY = (int)viewCenter.y;
     }
 _skip_render:
 
 
     ImGui::End();
     ImGui::PopStyleVar();
+
+    ImGui::Begin("Hierarhy");
+    for (std::shared_ptr<Object> obj : engine->level->objects) {
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf;
+        if (obj->getId() == Editor::selected_ObjectID)
+            flags |= ImGuiTreeNodeFlags_Selected;
+        if (ImGui::TreeNodeEx(obj->name.c_str(), flags)) {
+            // foreach child
+            // ...
+            if (ImGui::IsItemClicked(0)) {
+                std::cout << obj->name.c_str() << std::endl;
+                Editor::selected_ObjectID = obj->getId();
+                Core::selected_ObjectID = obj->getId();
+            }
+            ImGui::TreePop();
+        }
+        
+    }
+    ImGui::End();
     /*ImGui::Begin("Hello, world!");
 
     ImGui::BeginChild("Viewport");
@@ -135,6 +134,27 @@ _skip_render:
 
 }
 
+void Engine::PostInit() {
+    Core::isEnableEditor = true;
+    Editor::viewport = std::make_shared<RenderTexture>(1, 1, level->main_cam);
+    Engine::SetPreRenderPtr(std::function<void(Engine*)>(CustomPreRender));
+    Engine::SetPostRenderPtr(std::function<void(Engine*)>(CustomPostRender));
+
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+    //ImGui::StyleColorsLight();
+
+    ImGui_ImplGlfw_InitForOpenGL(window.GLFW_window, true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+}
+
 static bool Clicked = false;
 void Engine::InputProcess() {
     if (glfwGetKey(window.GLFW_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -145,7 +165,7 @@ void Engine::InputProcess() {
         return;
     }*/
 
-    if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_PRESS && !Clicked) {
+    /*if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_PRESS && !Clicked) {
         Clicked = true;
         double mouseX;
         double mouseY;
@@ -194,5 +214,5 @@ void Engine::InputProcess() {
 
         for (std::shared_ptr<Object> obj : objsToErase)
             level->Destroy_Object(obj);
-    }
+    }*/
 }

@@ -28,7 +28,10 @@ namespace SC {
 
 		static bool Inited;
 	public:
+		//Editor
 		static bool isEnableEditor;
+		static uint64_t selected_ObjectID;
+
 		static std::shared_ptr<Engine> Engine;
 
 		static void Init();
