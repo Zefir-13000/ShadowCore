@@ -152,6 +152,8 @@
     <None Include="Shaders\Base.vert" />
     <None Include="Shaders\Debug.frag" />
     <None Include="Shaders\Debug.vert" />
+    <None Include="Shaders\Picking.frag" />
+    <None Include="Shaders\Picking.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h" />

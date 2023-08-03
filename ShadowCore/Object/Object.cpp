@@ -3,7 +3,7 @@
 
 using namespace SC;
 
-uint64_t Object::Last_id = 0;
+uint64_t Object::Last_id = 1;
 
 Object::Object() {
 	enginePtr = Core::Engine;

@@ -34,6 +34,7 @@ namespace SC {
 		RenderObject(std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type);
 
 		virtual void Render();
+		virtual void Render(std::shared_ptr<Shader> _render_shader);
 		virtual void RenderComponents();
 
 		void SetShader(std::shared_ptr<Shader> _shader);

@@ -26,6 +26,9 @@ Texture::Texture(std::string name, TextureTypes type) {
     unsigned char* img = stbi_load(name.c_str(), &width, &height, &nrComponents, 0);
     if (img)
     {
+        Texture::size_x = width;
+        Texture::size_y = height;
+
         GLenum format = GL_RGB;
         if (nrComponents == 1)
             format = GL_RED;
@@ -75,32 +78,39 @@ uint32_t Texture::GetTextureID() {
 }
 
 void RenderTexture::Bind() {
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
+    if (Inited) {
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+    }
 }
 
 void RenderTexture::UnBind() {
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void RenderTexture::Render() {
-    RenderTexture::Bind();
+    if (Inited) {
+        RenderTexture::Bind();
 
-    // Draw Scene
-    Core::Engine->level->Render();
+        // Draw Scene
+        Core::Engine->level->Render();
 
-    RenderTexture::UnBind();
+        RenderTexture::UnBind();
+    }
 }
 
-void RenderTexture::RecreateFB(int _x, int _y) {
+void RenderTexture::RecreateFB(uint32_t _x, uint32_t _y) {
+    Inited = false;
+
     RenderTexture::size_x = _x;
     RenderTexture::size_y = _y;
 
-    glDeleteRenderbuffers(1, &rbo);
+    glDeleteRenderbuffers(1, &depth_tex);
     glDeleteTextures(1, &textureID);
     glDeleteFramebuffers(1, &framebuffer);
 
@@ -119,19 +129,23 @@ void RenderTexture::RecreateFB(int _x, int _y) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
 
     // Init Depth Texture
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glGenRenderbuffers(1, &depth_tex);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_tex);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _x, _y);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_tex);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Inited = true;
 }
 
-RenderTexture::RenderTexture(int _x, int _y, std::shared_ptr<Camera> _render_cam) {
+RenderTexture::RenderTexture(std::shared_ptr<Camera> _render_cam, uint32_t _x = 1, uint32_t _y = 1) {
     RenderTexture::size_x = _x;
     RenderTexture::size_y = _y;
 
@@ -152,14 +166,120 @@ RenderTexture::RenderTexture(int _x, int _y, std::shared_ptr<Camera> _render_cam
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
 
     // Init Depth Texture
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glGenRenderbuffers(1, &depth_tex);
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_tex);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, _x, _y);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_tex);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Inited = true;
+}
+
+PickingTexture::PickingTexture(uint32_t _x = 1, uint32_t _y = 1) {
+    PickingTexture::size_x = _x;
+    PickingTexture::size_y = _y;
+
+    // Init FrameBuffer
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Init picking data texture
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, _x, _y, 0, GL_RGB_INTEGER, GL_UNSIGNED_INT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+    // create depth texture
+    glGenTextures(1, &depth_tex);
+    glBindTexture(GL_TEXTURE_2D, depth_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _x, _y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_tex, 0);
+
+    glReadBuffer(GL_NONE);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Inited = true;
+}
+
+void PickingTexture::Bind() {
+    if (Inited)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+}
+
+void PickingTexture::UnBind() {
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void PickingTexture::RecreateFB(uint32_t _x, uint32_t _y) {
+    Inited = false;
+
+    PickingTexture::size_x = _x;
+    PickingTexture::size_y = _y;
+
+    glDeleteRenderbuffers(1, &depth_tex);
+    glDeleteTextures(1, &textureID);
+    glDeleteFramebuffers(1, &framebuffer);
+
+    // Init FrameBuffer
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Init picking data texture
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, _x, _y, 0, GL_RGB_INTEGER, GL_UNSIGNED_INT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+    // create depth texture
+    glGenTextures(1, &depth_tex);
+    glBindTexture(GL_TEXTURE_2D, depth_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, _x, _y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_tex, 0);
+
+    glReadBuffer(GL_NONE);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Inited = true;
+}
+
+PickingTexture::PixelInfo PickingTexture::ReadPixel(uint32_t _x, uint32_t _y) {
+    if (Inited) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+        PixelInfo Pixel{};
+        glReadPixels(_x, _y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &Pixel);
+        std::cout << "PixelObj: " << Pixel.ObjectID << std::endl;
+
+        glReadBuffer(GL_NONE);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+        return Pixel;
+    }
+    return {};
 }

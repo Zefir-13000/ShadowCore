@@ -40,11 +40,7 @@ namespace SC {
         void Render() override {
             enginePtr->debug_shader->Activate();
             enginePtr->debug_shader->setVec3("color", glm::vec3(0.8f));
-            enginePtr->debug_shader->setMat4("model", glm::mat4(1.0f));
-            enginePtr->debug_shader->setMat4("view", enginePtr->level->main_cam->view);
-            enginePtr->debug_shader->setMat4("projection", enginePtr->level->main_cam->proj);
-
-            enginePtr->debug_shader->setMat4("model", glm::mat4(1.0));
+            enginePtr->debug_shader->setMat4("MVP", enginePtr->level->main_cam->proj * enginePtr->level->main_cam->view);
 
             glBindVertexArray(VAO);
             glDrawArrays(GL_LINES, 0, 2);
@@ -67,11 +63,7 @@ namespace SC {
         void Render() override {
             enginePtr->debug_shader->Activate();
             enginePtr->debug_shader->setVec3("color", glm::vec3(0.8f));
-            enginePtr->debug_shader->setMat4("model", glm::mat4(1.0f));
-            enginePtr->debug_shader->setMat4("view", enginePtr->level->main_cam->view);
-            enginePtr->debug_shader->setMat4("projection", enginePtr->level->main_cam->proj);
-
-            enginePtr->debug_shader->setMat4("model", glm::mat4(1.0));
+            enginePtr->debug_shader->setMat4("MVP", enginePtr->level->main_cam->proj * enginePtr->level->main_cam->view);
 
             glBindVertexArray(VAO);
             glPointSize(point_size);

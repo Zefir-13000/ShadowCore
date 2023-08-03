@@ -67,4 +67,5 @@ enum TextureTypes {
 	SPECULAR = 1,
 	EMISSION = 2,
 	RENDER_TEXTURE = 3,
+	PICKING_TEXTURE = 4,
 };

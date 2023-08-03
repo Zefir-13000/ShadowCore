@@ -5,11 +5,34 @@ void CustomPreRender(Engine* engine) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //level->Render();
+    if (Editor::viewport->size_x > 0 && Editor::viewport->size_y > 0)
+        Editor::viewport->Render();
 
     engine->Tick();
 }
 
+void Editor::PickingPhase() {
+    if (pickingTexture != nullptr) {
+        std::cout << "PickingPhase()!\n";
+        pickingTexture->Bind();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        for (std::shared_ptr<Object> object : Core::Engine->level->objects) {
+            if (object->type == MESH) {
+                std::shared_ptr<RenderObject> rd = std::dynamic_pointer_cast<RenderObject>(object);
+
+                pickingShader->Activate();
+                pickingShader->setUInt("ObjectIndex", 1);
+                pickingShader->setUInt("DrawIndex", 1);
+
+                rd->Render(pickingShader);
+            }
+        }
+
+        pickingTexture->UnBind();
+    }
+}
 
 void CustomPostRender(Engine* engine) {
     ImGui_ImplOpenGL3_NewFrame();
@@ -39,6 +62,12 @@ void CustomPostRender(Engine* engine) {
     ImGui::Begin("Viewport");
 
 
+    POINT p;
+    if (GetCursorPos(&p)) {
+        Editor::MousePos.x = p.x - ImGui::GetWindowContentRegionMin().x - ImGui::GetWindowPos().x;
+        Editor::MousePos.y = p.y - ImGui::GetWindowContentRegionMin().y - ImGui::GetWindowPos().y;
+    }
+
     ImVec2 view = ImGui::GetContentRegionAvail();
     if (view.x != Editor::viewport->size_x || view.y != Editor::viewport->size_y)
     {
@@ -51,11 +80,10 @@ void CustomPostRender(Engine* engine) {
         // The window state has been successfully changed.
         glViewport(0, 0, view.x, view.y);
         Editor::viewport->RecreateFB(view.x, view.y);
+        Editor::pickingTexture->RecreateFB(view.x, view.y);
         engine->level->main_cam->UpdateProjection(view.x, view.y);
-        std::cout << "RecreateFB!\n";
     }
 
-    Editor::viewport->Render();
     ImGui::Image((void*)Editor::viewport->GetTextureID(), ImVec2(Editor::viewport->size_x, Editor::viewport->size_y), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
     engine->level->main_cam->SetActive(ImGui::IsItemHovered());
     if (engine->level->main_cam->cam_move_type == FLY_CAM && Core::isEnableEditor && !ImGui::IsWindowDocked()) {
@@ -136,7 +164,9 @@ _skip_render:
 
 void Engine::PostInit() {
     Core::isEnableEditor = true;
-    Editor::viewport = std::make_shared<RenderTexture>(1, 1, level->main_cam);
+    Editor::viewport = std::make_shared<RenderTexture>(level->main_cam, 1, 1);
+    Editor::pickingTexture = std::make_shared<PickingTexture>(1, 1);
+    Editor::pickingShader = std::make_shared<Shader>("Picking");
     Engine::SetPreRenderPtr(std::function<void(Engine*)>(CustomPreRender));
     Engine::SetPostRenderPtr(std::function<void(Engine*)>(CustomPostRender));
 
@@ -164,6 +194,17 @@ void Engine::InputProcess() {
     if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
         return;
     }*/
+
+    if (Core::isEnableEditor) {
+        if (GetAsyncKeyState(VK_LBUTTON)) {
+            PickingTexture::PixelInfo Pixel = Editor::pickingTexture->ReadPixel(Editor::MousePos.x, Editor::pickingTexture->size_y - Editor::MousePos.y);
+            if (Pixel.ObjectID != 0) {
+                Editor::selected_ObjectID = Pixel.ObjectID;
+                Core::selected_ObjectID = Pixel.ObjectID;
+                std::cout << Pixel.ObjectID << std::endl;
+            }
+        }
+    }
 
     /*if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_PRESS && !Clicked) {
         Clicked = true;

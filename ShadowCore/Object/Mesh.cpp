@@ -65,6 +65,7 @@ void Mesh::Render() {
         }
         
         Mesh::render_shader->setMat4("model", Mesh::transform.model);
+        Mesh::render_shader->setMat4("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * Mesh::transform.model);
         //RenderObject::render_shader->setMat4("projection", enginePtr->level->main_cam->proj);
         //RenderObject::render_shader->setMat4("view", enginePtr->level->main_cam->view);
 

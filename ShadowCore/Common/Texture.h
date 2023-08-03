@@ -10,6 +10,8 @@ namespace SC {
 		uint32_t textureID = NULL;
 		bool Inited = false;
 	public:
+		uint32_t size_x = 0, size_y = 0;
+
 		TextureTypes type = DIFFUSE;
 		Texture(std::string name, TextureTypes type);
 		Texture();
@@ -24,15 +26,13 @@ namespace SC {
 	class Camera;
 	class RenderTexture : public Texture {
 	private:
-		uint32_t framebuffer, rbo;
+		uint32_t framebuffer, depth_tex;
 
 		std::shared_ptr<Camera> render_cam = nullptr;
 	public:
-		int size_x = 0, size_y = 0;
-
-		RenderTexture(int x, int y, std::shared_ptr<Camera> _render_cam);
+		RenderTexture(std::shared_ptr<Camera> _render_cam, uint32_t _x, uint32_t _y);
 		~RenderTexture() {
-			glDeleteRenderbuffers(1, &rbo);
+			glDeleteRenderbuffers(1, &depth_tex);
 			glDeleteTextures(1, &textureID);
 			glDeleteFramebuffers(1, &framebuffer);
 		}
@@ -40,7 +40,33 @@ namespace SC {
 		void Bind();
 		void UnBind();
 		void Render();
-		void RecreateFB(int x, int y);
+		void RecreateFB(uint32_t _x, uint32_t _y);
+	};
+
+	class PickingTexture : public Texture {
+	private:
+		uint32_t framebuffer, depth_tex;
+
+	public:
+		struct PixelInfo {
+			uint32_t ObjectID = 0;
+			uint32_t DrawID = 0;
+			uint32_t PrimID = 0;
+		};
+
+		PickingTexture(uint32_t _x, uint32_t _y);
+		~PickingTexture() {
+			glDeleteRenderbuffers(1, &depth_tex);
+			glDeleteTextures(1, &textureID);
+			glDeleteFramebuffers(1, &framebuffer);
+		}
+
+		PixelInfo ReadPixel(uint32_t _x, uint32_t _y);
+
+		void RecreateFB(uint32_t _x, uint32_t _y);
+
+		void Bind();
+		void UnBind();
 	};
 
 };

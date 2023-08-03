@@ -40,9 +40,9 @@ int main() {
     for (int i = 0; i < 2; i++) {
         std::shared_ptr<Cube> mesh = std::make_shared<Cube>();
         mesh->transform.Translate(cubePositions[i]);
-        mesh->transform.Rotate(glm::vec3(45.f, 0.f, 0.f));
+        mesh->transform.Rotate(glm::vec3(45.f * 3, 0.f, 15.f * i));
         //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
-        mesh->AddComponent<AABB>();
+        mesh->AddComponent<AABB>()->CalculateMinMax(mesh->transform.model, true);
         mesh->SetShader(enginePtr->standart_render_shader);
         mesh->SetMaterial(mainColorMaterial);
         level->Add_Object(mesh);
@@ -68,19 +68,15 @@ int main() {
     cone->SetShader(enginePtr->standart_render_shader);
     level->Add_Object(cone);
     
-    
-
-
     glViewport(0, 0, enginePtr->window.width, enginePtr->window.height);
     glEnable(GL_DEPTH_TEST);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // WireFrame
     while (!glfwWindowShouldClose(enginePtr->window.GLFW_window))
     {
         enginePtr->InputProcess();
+        Editor::PickingPhase();
 
         enginePtr->standart_render_shader->Activate();
-        enginePtr->standart_render_shader->setMat4("view", cam1->view);
-        enginePtr->standart_render_shader->setMat4("projection", cam1->proj);
 
         enginePtr->standart_render_shader->setVec3("light.position", light->transform.position);
         enginePtr->standart_render_shader->setVec3("light.AmbientStrength", glm::vec3(0.2f));

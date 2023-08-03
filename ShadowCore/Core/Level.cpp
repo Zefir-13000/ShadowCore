@@ -39,3 +39,13 @@ void Level::Render() {
 		}
 	}
 }
+
+void Level::Render(std::shared_ptr<Shader> _render_shader) {
+	for (std::shared_ptr<Object> object : objects) {
+		if (object->type == RENDER_OBJECT || object->type == MESH) {
+			std::shared_ptr<RenderObject> rd = std::dynamic_pointer_cast<RenderObject>(object);
+
+			rd->Render(_render_shader);
+		}
+	}
+}

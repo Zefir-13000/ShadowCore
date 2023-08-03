@@ -38,6 +38,12 @@
     <None Include="Shaders\Debug.vert">
       <Filter>Файлы ресурсов\Shaders</Filter>
     </None>
+    <None Include="Shaders\Picking.frag">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Picking.vert">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">

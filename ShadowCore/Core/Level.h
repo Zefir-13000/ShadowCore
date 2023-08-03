@@ -14,6 +14,7 @@ namespace SC {
 		void Destroy_Object(std::shared_ptr<Object> object);
 
 		void Render();
+		void Render(std::shared_ptr<Shader> _render_shader);
 
 		std::string level_name = "Level";
 		std::vector<std::shared_ptr<Object>> objects = {};

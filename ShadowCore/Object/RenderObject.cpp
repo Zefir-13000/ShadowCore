@@ -1,5 +1,5 @@
 #include "RenderObject.h"
-#include "Core/Engine.h"
+#include "Core/Core.h"
 
 using namespace SC;
 
@@ -108,6 +108,7 @@ void RenderObject::Render() {
     if (RenderObject::Inited && RenderObject::render_shader != nullptr) {
         RenderObject::render_shader->Activate();
 
+        RenderObject::render_shader->setMat4("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform.model);
         RenderObject::render_shader->setMat4("model", glm::mat4(1.0));
 
         glBindVertexArray(VAO);
@@ -121,7 +122,26 @@ void RenderObject::Render() {
     }
     else if (RenderObject::render_shader == nullptr) {
         std::cerr << "ERROR::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
-        RenderObject::render_shader = enginePtr->standart_render_shader;
+        RenderObject::render_shader = enginePtr->debug_shader;
+    }
+}
+
+void RenderObject::Render(std::shared_ptr<Shader> _render_shader) {
+    if (RenderObject::Inited) {
+        _render_shader->Activate();
+        _render_shader->setUInt("ObjectIndex", static_cast<uint32_t>(getId()));
+        _render_shader->setUInt("DrawIndex", 0);
+        RenderObject::render_shader->setMat4("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform.model);
+        //RenderObject::render_shader->setMat4("model", glm::mat4(1.0));
+    
+        glBindVertexArray(VAO);
+        if (RenderObject::geometry_data->render_type == ELEMENT) {
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(RenderObject::geometry_data->indices_count), GL_UNSIGNED_INT, 0);
+        }
+        else if (RenderObject::geometry_data->render_type == ARRAY) {
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(RenderObject::geometry_data->vertices_count));
+        }
+        glBindVertexArray(0);
     }
 }
 
@@ -131,9 +151,7 @@ void RenderObject::RenderComponents() {
             if (component->component_type == RENDER_COMPONENT) {
                 enginePtr->debug_shader->Activate();
                 enginePtr->debug_shader->setVec3("color", glm::vec3(0.8f));
-                enginePtr->debug_shader->setMat4("model", glm::mat4(1.0f));
-                enginePtr->debug_shader->setMat4("view", enginePtr->level->main_cam->view);
-                enginePtr->debug_shader->setMat4("projection", enginePtr->level->main_cam->proj);
+                RenderObject::render_shader->setMat4("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view);
 
                 component->Render();
             }
