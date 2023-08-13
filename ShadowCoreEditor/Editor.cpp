@@ -65,7 +65,7 @@ void CustomPostRender(Engine* engine) {
     POINT p;
     if (GetCursorPos(&p)) {
         Editor::MousePos.x = p.x - ImGui::GetWindowContentRegionMin().x - ImGui::GetWindowPos().x;
-        Editor::MousePos.y = p.y - ImGui::GetWindowContentRegionMin().y - ImGui::GetWindowPos().y;
+        Editor::MousePos.y = p.y - static_cast<uint32_t>(ImGui::GetWindowContentRegionMin().y - ImGui::GetWindowPos().y);
     }
 
     ImVec2 view = ImGui::GetContentRegionAvail();
