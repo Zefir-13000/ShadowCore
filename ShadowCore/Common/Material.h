@@ -19,7 +19,7 @@ namespace SC {
 	public:
 		glm::vec3 Ambient{ 0.1f };
 		std::shared_ptr<Texture> ambient_texture = nullptr;
-		glm::vec3 Diffuse{ 0.87, 0.5, 0.27 };
+		glm::vec3 Diffuse{ 0.8, 0.8, 0.8 };
 		std::shared_ptr<Texture> diffuse_texture = nullptr;
 		glm::vec3 Specular{ 0.5f };
 		std::shared_ptr<Texture> specular_texture = nullptr;

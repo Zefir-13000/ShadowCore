@@ -12,7 +12,7 @@ namespace SC {
 	public:
 		uint32_t size_x = 0, size_y = 0;
 
-		TextureTypes type = DIFFUSE;
+		TextureTypes type = DIFFUSE_TEXTURE;
 		Texture(std::string name, TextureTypes type);
 		Texture();
 		virtual ~Texture() {
@@ -39,8 +39,30 @@ namespace SC {
 
 		void Bind();
 		void UnBind();
-		void Render();
+		void Render(bool autoBind = true);
 		void RecreateFB(uint32_t _x, uint32_t _y);
+
+		std::shared_ptr<Camera> GetRenderCam() { return this->render_cam; }
+	};
+
+	class ShadowMapTexture : public Texture {
+	private:
+		uint32_t framebuffer; // Overriding textureID to be depth texture
+
+		std::shared_ptr<Camera> render_cam = nullptr;
+	public:
+		ShadowMapTexture(std::shared_ptr<Camera> _render_cam, uint32_t _size);
+		~ShadowMapTexture() {
+			glDeleteTextures(1, &textureID);
+			glDeleteFramebuffers(1, &framebuffer);
+		}
+
+		void Bind(int tex_num, bool enable_framebuffer = true);
+		void UnBind();
+		void Render(int tex_num);
+		void RecreateFB(uint32_t _size);
+
+		std::shared_ptr<Camera> GetRenderCam() { return this->render_cam;  }
 	};
 
 	class PickingTexture : public Texture {

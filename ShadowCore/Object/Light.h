@@ -1,25 +1,23 @@
 #pragma once
 #include "ssi.h"
-#include "Object/Object.h"
+#include "Object/RenderObject.h"
 #include "Common/Transform.h"
 
 namespace SC {
 
-	class Light : public Object
+	class Light : public RenderObject
 	{
 	private:
 		size_t lightID = 0;
 
 	public:
-		Light() {};
+		Light() : RenderObject("Light", std::make_shared<GeometryData>(), NEEDED) {};
 		~Light() {};
 
-		LightType lightType = POINT_LIGHT;
+		LightType lightType = NOLIGHT;
 
 		float intensity = 1.0f;
 		glm::vec3 light_color = glm::vec4(1.0f);
-
-		Transform transform;
 	};
 
 	class PointLight : public Light {

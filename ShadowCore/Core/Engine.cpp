@@ -17,6 +17,7 @@ Engine::Engine() : preRenderFunction(std::bind(&Engine::DefaultPreRender, this))
 void Engine::Init_Shaders() {
 	Engine::standart_render_shader = std::make_shared<SC::Shader>("Base");
 	Engine::debug_shader = std::make_shared<SC::Shader>("Debug");
+	Engine::shadow_shader = std::make_shared<SC::Shader>("Shadow");
 }
 
 void Engine::Init() {
@@ -58,6 +59,14 @@ void Engine::Init() {
 }
 
 void Engine::DefaultPreRender() {
+	glCullFace(GL_FRONT);
+	for (std::shared_ptr<ShadowMapTexture> shadowMap : Engine::level->shadows) {
+		Core::Engine->shadow_shader->Activate();
+		Core::Engine->shadow_shader->setValue("lightSpaceMatrix", shadowMap->GetRenderCam()->GetPVMatrix());
+		shadowMap->Render(5);
+	}
+	glCullFace(GL_BACK);
+
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -44,58 +44,42 @@ std::shared_ptr<std::vector<Vertex>> RenderObject::ArrayToVertexPositionOnly(std
     return res;
 }
 
-void RenderObject::Initialize(std::shared_ptr<GeometryData> _geom_data) {
-    RenderObject::type = RENDER_OBJECT;
-    RenderObject::geometry_data = _geom_data;
-    
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    if (_geom_data->render_type == ELEMENT)
-        glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * _geom_data->vertices_count, _geom_data->vertices->data(), GL_STATIC_DRAW);
-
-    if (_geom_data->render_type == ELEMENT) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_geom_data->indices) * _geom_data->indices_count, _geom_data->indices->data(), GL_STATIC_DRAW);
-    }
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    Inited = true;
-}
-
-void RenderObject::UnInitialize() {
-    if (Inited) {
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-        Inited = false;
-    }
-}
-
-
-RenderObject::RenderObject(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type = USELESS) {
+RenderObject::RenderObject(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type = USELESS) : Object(_name) {
     RenderObject::name = _name;
     RenderObject::u_type = _u_type;
-    Initialize(_geom_data);
+    RenderObject::type = RENDER_OBJECT;
+    RenderObject::renderSeq = std::make_shared<RenderSequence>(std::initializer_list<std::shared_ptr<GeometryData>>{ _geom_data });
+
+    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::transform->this_obj = this;
 }
 
-RenderObject::RenderObject(std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type = USELESS) {
+RenderObject::RenderObject(std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type = USELESS) : Object() {
     RenderObject::u_type = _u_type;
-    Initialize(_geom_data);
+    RenderObject::type = RENDER_OBJECT;
+    RenderObject::renderSeq = std::make_shared<RenderSequence>(std::initializer_list<std::shared_ptr<GeometryData>>{ _geom_data });
+
+    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::transform->this_obj = this;
+}
+
+RenderObject::RenderObject(std::string _name, std::shared_ptr<RenderSequence> _render_seq, UseLessType _u_type) : Object(_name) {
+    RenderObject::name = _name;
+    RenderObject::u_type = _u_type;
+    RenderObject::type = RENDER_OBJECT;
+    RenderObject::renderSeq = _render_seq;
+
+    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::transform->this_obj = this;
+}
+
+RenderObject::RenderObject(std::shared_ptr<RenderSequence> _render_seq, UseLessType _u_type) : Object() {
+    RenderObject::u_type = _u_type;
+    RenderObject::type = RENDER_OBJECT;
+    RenderObject::renderSeq = _render_seq;
+
+    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::transform->this_obj = this;
 }
 
 
@@ -103,62 +87,124 @@ void RenderObject::SetShader(std::shared_ptr<Shader> shader) {
     RenderObject::render_shader = shader;
 }
 
+void RenderObject::Render(std::shared_ptr<Shader> _render_shader, bool ignore_inputs) {
+    if (Core::isEnableEditor) //  && this->getId() == Core::selected_ObjectID
+        RenderComponents();
+    if (_render_shader != nullptr) {
+        _render_shader->Activate();
 
-void RenderObject::Render() {
-    if (RenderObject::Inited && RenderObject::render_shader != nullptr) {
-        RenderObject::render_shader->Activate();
+        _render_shader->setValue("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform->GetMatrix());
+        _render_shader->setValue("model", RenderObject::transform->GetMatrix());
+        _render_shader->setValue("color", glm::vec3(0.8f));
 
-        RenderObject::render_shader->setMat4("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform.model);
-        RenderObject::render_shader->setMat4("model", glm::mat4(1.0));
-
-        glBindVertexArray(VAO);
-        if (RenderObject::geometry_data->render_type == ELEMENT) {
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(RenderObject::geometry_data->indices_count), GL_UNSIGNED_INT, 0);
+        if (Core::Engine->level->shadows.size() > 0) {
+            _render_shader->setValue("lightSpaceMatrix", Core::Engine->level->shadows[0]->GetRenderCam()->GetPVMatrix());
+            _render_shader->setValue("shadow_map", 5);
+            Core::Engine->level->shadows[0]->Bind(5, false);
+            _render_shader->setValue("has_shadow_map", 1);
         }
-        else if (RenderObject::geometry_data->render_type == ARRAY) {
-            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(RenderObject::geometry_data->vertices_count));
+
+        if (Core::isEnableEditor) {
+            _render_shader->setValue("ObjectIndex", static_cast<uint32_t>(getId()));
         }
-        glBindVertexArray(0);
+
+        if (!ignore_inputs && RenderObject::shader_input != nullptr) {
+            RenderObject::shader_input->BindAllToShader();
+        }
+
+        for (std::shared_ptr<GeometryData> geom_data : renderSeq->geoms_data) {
+            glBindVertexArray(geom_data->VAO);
+
+            if (geom_data->render_type == ELEMENT) {
+                glDrawElements(geom_data->render_mode, static_cast<GLsizei>(geom_data->indices_count), GL_UNSIGNED_INT, 0);
+            }
+            else if (geom_data->render_type == ARRAY) {
+                glDrawArrays(geom_data->render_mode, 0, static_cast<GLsizei>(geom_data->vertices_count));
+            }
+            glBindVertexArray(0);
+        }
     }
-    else if (RenderObject::render_shader == nullptr) {
-        std::cerr << "ERROR::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
-        RenderObject::render_shader = enginePtr->debug_shader;
+
+    for (std::shared_ptr<Object> child : RenderObject::transform->children) {
+        if (child && child->IsRenderAble()) {
+            std::dynamic_pointer_cast<RenderObject>(child)->Render(_render_shader, ignore_inputs);
+        }
     }
 }
 
-void RenderObject::Render(std::shared_ptr<Shader> _render_shader) {
-    if (RenderObject::Inited) {
-        _render_shader->Activate();
-        _render_shader->setUInt("ObjectIndex", static_cast<uint32_t>(getId()));
-        _render_shader->setUInt("DrawIndex", 0);
-        RenderObject::render_shader->setMat4("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform.model);
-        //RenderObject::render_shader->setMat4("model", glm::mat4(1.0));
-    
-        glBindVertexArray(VAO);
-        if (RenderObject::geometry_data->render_type == ELEMENT) {
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(RenderObject::geometry_data->indices_count), GL_UNSIGNED_INT, 0);
+void RenderObject::Render() {
+    if (Core::isEnableEditor) //  && this->getId() == Editor::selected_ObjectID
+        RenderComponents();
+    if (RenderObject::render_shader != nullptr) {
+        RenderObject::render_shader->Activate();
+
+        RenderObject::render_shader->setValue("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform->GetMatrix());
+        RenderObject::render_shader->setValue("model", RenderObject::transform->GetMatrix());
+        RenderObject::render_shader->setValue("color", glm::vec3(0.8f));
+
+        if (Core::isEnableEditor) {
+            RenderObject::render_shader->setValue("ObjectIndex", static_cast<uint32_t>(getId()));
         }
-        else if (RenderObject::geometry_data->render_type == ARRAY) {
-            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(RenderObject::geometry_data->vertices_count));
+
+        if (Core::Engine->level->shadows.size() > 0) {
+            RenderObject::render_shader->setValue("lightSpaceMatrix", Core::Engine->level->shadows[0]->GetRenderCam()->GetPVMatrix());
+            RenderObject::render_shader->setValue("shadow_map", 5);
+            Core::Engine->level->shadows[0]->Bind(5, false);
+            RenderObject::render_shader->setValue("has_shadow_map", 1);
         }
-        glBindVertexArray(0);
+
+        if (RenderObject::shader_input != nullptr) {
+            RenderObject::shader_input->BindAllToShader();
+        }
+
+        for (std::shared_ptr<GeometryData> geom_data : renderSeq->geoms_data) {
+            glBindVertexArray(geom_data->VAO);
+        
+            if (geom_data->render_type == ELEMENT) {
+                glDrawElements(geom_data->render_mode, static_cast<GLsizei>(geom_data->indices_count), GL_UNSIGNED_INT, 0);
+            }
+            else if (geom_data->render_type == ARRAY) {
+                glDrawArrays(geom_data->render_mode, 0, static_cast<GLsizei>(geom_data->vertices_count));
+            }
+            glBindVertexArray(0);
+        }
+    }
+    else if (RenderObject::render_shader == nullptr) {
+        RenderObject::render_shader = enginePtr->debug_shader;
+    }
+
+    for (std::shared_ptr<Object> child : RenderObject::transform->children) {
+        if (child && child->IsRenderAble()) {
+            std::dynamic_pointer_cast<RenderObject>(child)->Render();
+        }
     }
 }
 
 void RenderObject::RenderComponents() {
-    if (RenderObject::Inited) {
-        for (std::shared_ptr<Component> component : components) {
-            if (component->component_type == RENDER_COMPONENT) {
-                enginePtr->debug_shader->Activate();
-                enginePtr->debug_shader->setVec3("color", glm::vec3(0.8f));
-                RenderObject::render_shader->setMat4("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view);
+    for (std::shared_ptr<Component> component : components) {
+        if (component->component_type == RENDER_COMPONENT) {
+            enginePtr->debug_shader->Activate();
+            enginePtr->debug_shader->setValue("color", glm::vec3(0.8f));
+            enginePtr->debug_shader->setValue("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view);
 
-                component->Render();
-            }
+            component->Render();
         }
     }
-    else if (RenderObject::render_shader == nullptr) {
-        std::cerr << "ERROR::RENDER_OBJECT::RENDER_SHADER - RENDER_OBJECT (" << name << ") at 0x" << std::hex << this << " - RENDER_SHADER is NULL" << std::endl;
-        RenderObject::render_shader = enginePtr->standart_render_shader;
+}
+
+void RenderObject::UpdateComponents() {
+    for (std::shared_ptr<Component> component : components) {
+        component->Update();
     }
+}
+
+template <typename T> 
+void RenderObject::AddShaderInput(std::string& name, const T& value) {
+    if (RenderObject::shader_input == nullptr) {
+        if (RenderObject::render_shader == nullptr) {
+            RenderObject::render_shader = enginePtr->debug_shader;
+        }
+        RenderObject::shader_input = std::make_shared<ShaderInputCollection>(RenderObject::render_shader);
+    }
+    //RenderObject::shader_input->AddInput(name, value);
 }

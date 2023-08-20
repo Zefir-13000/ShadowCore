@@ -21,6 +21,7 @@ namespace SC {
         void Render() override;
 
         Mesh(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type);
+        Mesh(std::string _name, std::shared_ptr<RenderSequence> _render_seq, UseLessType _u_type);
 
         void SetMaterial(std::shared_ptr<Material> _material);
 

@@ -22,8 +22,9 @@ enum ComponentType {
 };
 
 enum LightType {
-	POINT_LIGHT = 0,
-	DIRECTIONAL_LIGHT = 1
+	NOLIGHT = 0,
+	POINT_LIGHT = 1,
+	DIRECTIONAL_LIGHT = 2
 };
 
 enum MaterialType {
@@ -49,11 +50,14 @@ enum MeshType {
 	LINE_TYPE = 3,
 	POINT_TYPE = 4,
 	CUBE_TYPE = 5,
+	ARROW_TYPE = 6,
+	PLANE_TYPE = 7,
 };
 
 enum RenderType {
-	ELEMENT = 0,
-	ARRAY = 1,
+	NORENDER = 0,
+	ELEMENT = 1,
+	ARRAY = 2,
 };
 
 static const char* RenderTypeStr[] = {
@@ -62,10 +66,10 @@ static const char* RenderTypeStr[] = {
 };
 
 enum TextureTypes {
-	NULL_TEX = 0,
-	DIFFUSE = 1,
-	SPECULAR = 1,
-	EMISSION = 2,
+	NULL_TEXTURE = 0,
+	DIFFUSE_TEXTURE = 1,
+	SPECULAR_TEXTURE = 1,
+	EMISSION_TEXTURE = 2,
 	RENDER_TEXTURE = 3,
 	PICKING_TEXTURE = 4,
 };

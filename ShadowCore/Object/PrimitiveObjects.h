@@ -6,9 +6,8 @@ namespace SC {
 
     extern std::shared_ptr<std::vector<uint32_t>> CubeIndices;
     class Cube : public Mesh {
-    private:
-        std::shared_ptr<GeometryData> MakeCube(float _width, float _height, float _depth);
     public:
+        static std::shared_ptr<GeometryData> MakeCube(float _width, float _height, float _depth);
         Cube(float _width = 1.f, float _height = 1.f, float _depth = 1.f) : Mesh("Cube", MakeCube(_width, _height, _depth), MANDATORY) {
             Cube::type = MESH;
             Cube::meshType = CUBE_TYPE;
@@ -17,44 +16,44 @@ namespace SC {
 
     constexpr int CONE_SEGMENTS = 18;
     class Cone : public Mesh {
-    private:
-        std::shared_ptr<GeometryData> MakeCone(float _height, float _radius);
     public:
+        static std::shared_ptr<GeometryData> MakeCone(float _height, float _radius);
         Cone(float _height = 1.f, float _radius = 1.f) : Mesh("Cone", MakeCone(_height, _radius), MANDATORY) {
             Cone::type = MESH;
             Cone::meshType = CONE_TYPE;
         }
     };
 
-
+    class Plane : public Mesh {
+    public:
+        static std::shared_ptr<GeometryData> MakePlane(float _width, float _height);
+        Plane(float _width = 1.f, float _height = 1.f) : Mesh("Plane", MakePlane(_width, _height), MANDATORY) {
+            Plane::type = MESH;
+            Plane::meshType = PLANE_TYPE;
+        }
+    };
 
     class Line : public Mesh {
-    private:
-        std::shared_ptr<GeometryData> ConvertPosToLine(glm::vec3 _startPos, glm::vec3 _endPos);
     public:
-        Line(glm::vec3 _startPos, glm::vec3 _endPos) : Mesh("Line", ConvertPosToLine(_startPos, _endPos), USEFUL) {
+        static std::shared_ptr<GeometryData> MakeLine(glm::vec3 _startPos, glm::vec3 _endPos);
+        Line(glm::vec3 _startPos, glm::vec3 _endPos) : Mesh("Line", MakeLine(_startPos, _endPos), USEFUL) {
             Line::type = MESH;
             Line::meshType = LINE_TYPE;
         }
+    };
 
-        void Render() override {
-            enginePtr->debug_shader->Activate();
-            enginePtr->debug_shader->setVec3("color", glm::vec3(0.8f));
-            enginePtr->debug_shader->setMat4("MVP", enginePtr->level->main_cam->proj * enginePtr->level->main_cam->view);
-
-            glBindVertexArray(VAO);
-            glDrawArrays(GL_LINES, 0, 2);
-            glBindVertexArray(0);
-        }
+    class Arrow : public Mesh {
+    public:
+        static std::shared_ptr<RenderSequence> MakeArrow(float _length);
+        Arrow(float _length);
     };
 
     class Point : public Mesh {
     private:
         float point_size = 1.f;
-
-        std::shared_ptr<GeometryData> ConvertPosToPoint(glm::vec3 _Pos);
     public:
-        Point(glm::vec3 _pos, float _size) : Mesh("Point", ConvertPosToPoint(_pos), USEFUL) {
+        static std::shared_ptr<GeometryData> MakePoint(glm::vec3 _Pos);
+        Point(glm::vec3 _pos, float _size) : Mesh("Point", MakePoint(_pos), USEFUL) {
             Point::type = MESH;
             Point::meshType = POINT_TYPE;
             point_size = _size;
@@ -62,14 +61,21 @@ namespace SC {
 
         void Render() override {
             enginePtr->debug_shader->Activate();
-            enginePtr->debug_shader->setVec3("color", glm::vec3(0.8f));
-            enginePtr->debug_shader->setMat4("MVP", enginePtr->level->main_cam->proj * enginePtr->level->main_cam->view);
+            enginePtr->debug_shader->setValue("color", glm::vec3(0.8f));
+            enginePtr->debug_shader->setValue("MVP", enginePtr->level->main_cam->proj * enginePtr->level->main_cam->view);
 
-            glBindVertexArray(VAO);
-            glPointSize(point_size);
-            glDrawArrays(GL_POINTS, 0, 1);
-            glPointSize(1);
-            glBindVertexArray(0);
+            for (std::shared_ptr<GeometryData> geom_data : renderSeq->geoms_data) {
+                glBindVertexArray(geom_data->VAO);
+                glPointSize(point_size);
+                if (geom_data->render_type == ELEMENT) {
+                    glDrawElements(geom_data->render_mode, static_cast<GLsizei>(geom_data->indices_count), GL_UNSIGNED_INT, 0);
+                }
+                else if (geom_data->render_type == ARRAY) {
+                    glDrawArrays(geom_data->render_mode, 0, static_cast<GLsizei>(geom_data->vertices_count));
+                }
+                glPointSize(1);
+                glBindVertexArray(0);
+            }
         }
     };
 

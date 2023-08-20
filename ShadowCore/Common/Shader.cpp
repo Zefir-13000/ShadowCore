@@ -73,7 +73,7 @@ Shader::Shader(_In_ std::string name) {
 
 void Shader::Activate() {
 	glUseProgram(this->ID);
-	setFloat("time", static_cast<float>(STime::time));
+	setValue("time", static_cast<float>(STime::time));
 }
 
 Shader::~Shader() {

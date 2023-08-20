@@ -14,14 +14,15 @@ namespace SC {
 
     class AABB : public Component {
     private:
-        std::shared_ptr<GeometryData> BuildAABB_Box(std::shared_ptr<GeometryData> _geom_data);
+        std::shared_ptr<RenderSequence> BuildAABB_Box(std::shared_ptr<RenderSequence> _obj_seq);
         void ReBuildAABB_Box();
-        AABB_Box start_box{};
+        std::shared_ptr<AABB_Box> start_box = std::make_shared<AABB_Box>();
     public:
         std::shared_ptr<RenderObject> box_debug_mesh = nullptr;
-        AABB_Box box{};
+        std::shared_ptr<AABB_Box> box = std::make_shared<AABB_Box>();
 
-        AABB_Box CalculateMinMax(glm::mat4 model, bool rebuild);
+        std::shared_ptr<AABB_Box> CalculateMinMax(bool rebuild = false);
+        void TraverseChildren(std::shared_ptr<Object> obj, std::shared_ptr<AABB_Box> parent);
 
         AABB(std::shared_ptr<Object> _object);
 
@@ -30,12 +31,14 @@ namespace SC {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
             // Draw the AABB
-            glBindVertexArray(box_debug_mesh->VAO);
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(36), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
+            box_debug_mesh->Render();
 
             // Disable wireframe mode
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
+        void Update() {
+            CalculateMinMax(true);
         }
     };
 

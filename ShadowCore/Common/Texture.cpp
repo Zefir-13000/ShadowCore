@@ -10,7 +10,7 @@ using namespace SC;
 
 std::string TEXTURE_FOLDER("Textures/");
 Texture::Texture() {
-    Texture::type = NULL_TEX;
+    Texture::type = NULL_TEXTURE;
 }
 
 Texture::Texture(std::string name, TextureTypes type) {
@@ -62,12 +62,12 @@ Texture::Texture(std::string name, TextureTypes type) {
 void Texture::Bind(std::shared_ptr<Shader> shader, int texNum) {
     if (Inited) {
         shader->Activate();
-        if (type == DIFFUSE)
-            shader->setInt("has_diffuse_texture", 1);
-        else if (type == SPECULAR)
-            shader->setInt("has_specular_texture", 1);
-        else if (type == EMISSION)
-            shader->setInt("has_emission_texture", 1);
+        if (type == DIFFUSE_TEXTURE)
+            shader->setValue("has_diffuse_texture", 1);
+        else if (type == SPECULAR_TEXTURE)
+            shader->setValue("has_specular_texture", 1);
+        else if (type == EMISSION_TEXTURE)
+            shader->setValue("has_emission_texture", 1);
         glActiveTexture(GL_TEXTURE0 + texNum);
         glBindTexture(GL_TEXTURE_2D, textureID);
     }
@@ -93,14 +93,18 @@ void RenderTexture::UnBind() {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void RenderTexture::Render() {
-    if (Inited) {
+void RenderTexture::Render(bool autoBind) {
+    if (Inited && autoBind) {
         RenderTexture::Bind();
 
         // Draw Scene
         Core::Engine->level->Render();
 
         RenderTexture::UnBind();
+    }
+    else if (Inited && !autoBind) {
+        // Draw Scene
+        Core::Engine->level->Render();
     }
 }
 
@@ -172,6 +176,99 @@ RenderTexture::RenderTexture(std::shared_ptr<Camera> _render_cam, uint32_t _x = 
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, depth_tex);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Inited = true;
+}
+
+ShadowMapTexture::ShadowMapTexture(std::shared_ptr<Camera> _render_cam, uint32_t _size) {
+    ShadowMapTexture::size_x = _size;
+    ShadowMapTexture::size_y = _size;
+
+    ShadowMapTexture::render_cam = _render_cam;
+
+    // Init FrameBuffer
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Init depth texture
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+        _size, _size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureID, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Inited = true;
+}
+
+void ShadowMapTexture::Bind(int tex_num, bool enable_framebuffer) {
+    if (Inited) {
+        if (enable_framebuffer)
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glActiveTexture(GL_TEXTURE0 + tex_num);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+    }
+}
+void ShadowMapTexture::UnBind() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+void ShadowMapTexture::Render(int tex_num) {
+    ShadowMapTexture::Bind(tex_num);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, ShadowMapTexture::size_x, ShadowMapTexture::size_y);
+    // Draw Scene
+    Core::Engine->level->Render(Core::Engine->shadow_shader);
+
+    glViewport(0, 0, Core::Engine->window.width, Core::Engine->window.height);
+
+    ShadowMapTexture::UnBind();
+}
+void ShadowMapTexture::RecreateFB(uint32_t _size) {
+    Inited = false;
+
+    glDeleteTextures(1, &textureID);
+    glDeleteFramebuffers(1, &framebuffer);
+
+    ShadowMapTexture::size_x = _size;
+    ShadowMapTexture::size_y = _size;
+
+    // Init FrameBuffer
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    // Init depth texture
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+        _size, _size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, textureID, 0);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
@@ -273,7 +370,6 @@ PickingTexture::PixelInfo PickingTexture::ReadPixel(uint32_t _x, uint32_t _y) {
 
         PixelInfo Pixel{};
         glReadPixels(_x, _y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &Pixel);
-        std::cout << "PixelObj: " << Pixel.ObjectID << std::endl;
 
         glReadBuffer(GL_NONE);
 

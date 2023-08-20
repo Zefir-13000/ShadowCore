@@ -44,6 +44,8 @@
     <None Include="Shaders\Picking.vert">
       <Filter>Файлы ресурсов\Shaders</Filter>
     </None>
+    <None Include="Shaders\Shadow.vert" />
+    <None Include="Shaders\Shadow.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">

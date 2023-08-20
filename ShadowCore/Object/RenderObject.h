@@ -8,34 +8,30 @@ namespace SC {
 
 	class RenderObject : public Object {
 	public:
-		uint32_t VAO = 0, VBO = 0, EBO = 0;
-		bool Inited = false;
-
 		static std::shared_ptr<std::vector<Vertex>> ArrayToVertex(std::shared_ptr<std::vector<float>> _arr);
 		static std::shared_ptr<std::vector<Vertex>> ArrayToVertexPositionOnly(std::shared_ptr<std::vector<float>> _arr);
 
-		std::shared_ptr<GeometryData> geometry_data = nullptr;
+		std::shared_ptr<RenderSequence> renderSeq = nullptr;
 
 	public:
 		std::shared_ptr<Shader> render_shader;
+		std::shared_ptr<ShaderInputCollection> shader_input = nullptr;
 
-		Transform local_transform, transform;
+		template <class T> void AddShaderInput(std::string& name, const T& value);
 
-		virtual ~RenderObject() {
-			glDeleteVertexArrays(1, &VAO);
-			glDeleteBuffers(1, &VBO);
-			glDeleteBuffers(1, &EBO);
-		}
+		std::shared_ptr<Transform> transform = std::make_shared<Transform>();
 
-		void Initialize(std::shared_ptr<GeometryData> _geom_data);
-		void UnInitialize();
+		virtual ~RenderObject() {}
 
 		RenderObject(std::string _name, std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type);
 		RenderObject(std::shared_ptr<GeometryData> _geom_data, UseLessType _u_type);
+		RenderObject(std::string _name, std::shared_ptr<RenderSequence> _render_seq, UseLessType _u_type);
+		RenderObject(std::shared_ptr<RenderSequence> _render_seq, UseLessType _u_type);
 
 		virtual void Render();
-		virtual void Render(std::shared_ptr<Shader> _render_shader);
+		virtual void Render(std::shared_ptr<Shader> _render_shader, bool ignore_inputs = false);
 		virtual void RenderComponents();
+		virtual void UpdateComponents();
 
 		void SetShader(std::shared_ptr<Shader> _shader);
 	};

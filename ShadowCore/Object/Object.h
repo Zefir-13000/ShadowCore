@@ -11,8 +11,8 @@ namespace SC {
 	{
 	protected:
 		std::shared_ptr<Engine> enginePtr = nullptr;
-		static uint64_t Last_id;
-		uint64_t id;
+		static uint32_t Last_id;
+		uint32_t id;
 	public:
 		UseLessType u_type = USELESS;
 		std::vector<std::shared_ptr<Component>> components;
@@ -22,14 +22,13 @@ namespace SC {
 		Object();
 		Object(_In_ std::string name);
 
-		uint64_t getId() const { return id; }
+		void SetName(std::string _name) { this->name = _name; }
 
-		template <class T> // , class... Args
-		std::shared_ptr<T> AddComponent() { // Args&&... args
+		uint32_t getId() const { return id; }
+
+		template <class T>
+		std::shared_ptr<T> AddComponent() {
 			std::shared_ptr<Component> component = nullptr;
-			//if (sizeof...(args))
-			//	component = std::make_shared<T>(this, std::forward<Args>(args)...);
-			//else
 			component = std::make_shared<T>(shared_from_this());
 			this->components.push_back(component);
 			return std::dynamic_pointer_cast<T>(component);
@@ -47,6 +46,10 @@ namespace SC {
 
 		void RemoveComponent(std::shared_ptr<Component> _component) {
 			this->components.erase(std::remove(this->components.begin(), this->components.end(), _component), this->components.end());
+		}
+
+		bool IsRenderAble() {
+			return this->type == RENDER_OBJECT || this->type == MESH;
 		}
 
 		void Destroy();

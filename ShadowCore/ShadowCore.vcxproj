@@ -148,7 +148,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;assimp-vc143-mt.lib;draco.lib</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
@@ -182,6 +182,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Classes.h" />
+    <ClInclude Include="Helper\ModelLoading.h" />
+    <ClInclude Include="Helper\TransformHelper.h" />
     <ClInclude Include="Libraries\Include\imgui\imconfig.h" />
     <ClInclude Include="Libraries\Include\imgui\imgui.h" />
     <ClInclude Include="Libraries\Include\imgui\imgui_impl_glfw.h" />

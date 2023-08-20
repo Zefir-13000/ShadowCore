@@ -8,8 +8,6 @@
 #include "Common/Texture.h"
 #include "Utils/STime.h"
 
-#include <functional>
-
 namespace SC {
 
 	class EventHandler {
@@ -34,6 +32,7 @@ namespace SC {
 
 		std::shared_ptr<Shader> standart_render_shader = nullptr;
 		std::shared_ptr<Shader> debug_shader = nullptr;
+		std::shared_ptr<Shader> shadow_shader = nullptr;
 
 		void Init();
 		void Init_Shaders();

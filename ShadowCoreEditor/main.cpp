@@ -9,13 +9,16 @@ int main() {
     std::shared_ptr<Level> level = enginePtr->level;
 
     std::shared_ptr<FlyCamera> cam1 = std::make_shared<FlyCamera>(enginePtr->window.width, enginePtr->window.height, 60.f, PERSPECTIVE);
-    cam1->transform.Translate(glm::vec3(1, 1, -1));
+    std::shared_ptr<Camera> shadow1_cam = std::make_shared<Camera>(enginePtr->window.width, enginePtr->window.height, 1.f, ORTHOGRAPHIC);
+    shadow1_cam->far_plane = 10.f;
+
+    cam1->transform->Translate(glm::vec3(1, 1, -1));
     level->main_cam = cam1;
 
-    std::shared_ptr<Texture> diffuse_tex1 = std::make_shared<Texture>("WhiteBrick.jpg", DIFFUSE);
-    std::shared_ptr<Texture> diffuse_box = std::make_shared<Texture>("container2.png", DIFFUSE);
-    std::shared_ptr<Texture> specular_box = std::make_shared<Texture>("container2_specular.png", SPECULAR);
-    std::shared_ptr<Texture> emission_box = std::make_shared<Texture>("matrix.jpg", EMISSION);
+    std::shared_ptr<Texture> diffuse_tex1 = std::make_shared<Texture>("WhiteBrick.jpg", DIFFUSE_TEXTURE);
+    std::shared_ptr<Texture> diffuse_box = std::make_shared<Texture>("container2.png", DIFFUSE_TEXTURE);
+    std::shared_ptr<Texture> specular_box = std::make_shared<Texture>("container2_specular.png", SPECULAR_TEXTURE);
+    std::shared_ptr<Texture> emission_box = std::make_shared<Texture>("matrix.jpg", EMISSION_TEXTURE);
 
     std::shared_ptr<SMaterial> mainColorMaterial = std::make_shared<SMaterial>();
     mainColorMaterial->Diffuse = glm::vec3(1.0f, 0.5f, 0.31f);
@@ -24,67 +27,90 @@ int main() {
     mainColorMaterial->diffuse_texture = diffuse_box;
     mainColorMaterial->specular_texture = specular_box;
     mainColorMaterial->emission_texture = emission_box;
+    std::shared_ptr<SMaterial> whiteColorMaterial = std::make_shared<SMaterial>();
+    whiteColorMaterial->Diffuse = glm::vec3(1.0f);
+    mainColorMaterial->Ambient = glm::vec3(0.3f);
+    mainColorMaterial->Specular = glm::vec3(1.0f);
     std::shared_ptr<SMaterial> lightMaterial = std::make_shared<SMaterial>();
     lightMaterial->Diffuse = glm::vec3(1.0f);
     lightMaterial->Ambient = glm::vec3(1.0f);
     lightMaterial->Emission = glm::vec3(1.0f);
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>(glm::vec3(1.0f), 1.0f);
-    light->transform.Translate(glm::vec3(-2, 1, 0));
+    light->transform->Translate(glm::vec3(-2, 1, 0));
 
 
-    glm::vec3 cubePositions[] = {
-        glm::vec3(1.0f,  0.0f,  0.0f),
-        glm::vec3(1.0f,  3.0f, -5.0f),
-    };
-     
-    for (int i = 0; i < 2; i++) {
-        std::shared_ptr<Cube> mesh = std::make_shared<Cube>();
-        mesh->transform.Translate(cubePositions[i]);
-        mesh->transform.Rotate(glm::vec3(45.f * 3, 0.f, 15.f * i));
-        //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
-        mesh->AddComponent<AABB>()->CalculateMinMax(mesh->transform.model, true);
-        mesh->SetShader(enginePtr->standart_render_shader);
-        mesh->SetMaterial(mainColorMaterial);
-        level->Add_Object(mesh);
-        std::cout << "Id mesh: " << mesh->getId() << std::endl;
-        std::cout << "X: " << mesh->transform.forward.x << " Y: " << mesh->transform.forward.y << " Z: " << mesh->transform.forward.z << std::endl;
-    }
-
+    std::shared_ptr<Model> sponza = std::make_shared<Model>("Models/sponza.obj", MANDATORY);
+    sponza->transform->Scale(glm::vec3(0.002f));
+    sponza->transform->Translate(glm::vec3(0, 0, 0));
+    sponza->AddComponent<AABB>();
+    std::cout << "Id sponza: " << sponza->getId() << std::endl;
+    sponza->SetShader(enginePtr->standart_render_shader);
+    level->Add_Object(sponza);
+    
     std::shared_ptr<Cube> mesh = std::make_shared<Cube>();
-    mesh->transform.Scale(glm::vec3(0.1f));
-    mesh->transform.Translate(glm::vec3(-2, 1, 0));
+    mesh->transform->Scale(glm::vec3(0.1f));
+    mesh->transform->Translate(glm::vec3(-2, 1, 0));
     mesh->AddComponent<AABB>();
     std::cout << "Id mesh: " << mesh->getId() << std::endl;
-    //mesh->aabb_box->CalculateMinMax(mesh->transform.model, true);
     mesh->SetShader(enginePtr->standart_render_shader);
     mesh->SetMaterial(lightMaterial);
     level->Add_Object(mesh);
 
+    std::shared_ptr<Plane> plane = std::make_shared<Plane>(3, 3);
+    plane->SetShader(enginePtr->standart_render_shader);
+    plane->SetMaterial(whiteColorMaterial);
+    level->Add_Object(plane);
+
     std::shared_ptr<Cone> cone = std::make_shared<Cone>(0.3f, 0.1f);
-    cone->transform.Translate(glm::vec3(2, 1, 0));
-    cone->AddComponent<AABB>(); // ->CalculateMinMax(cone->transform.model, true);
+    cone->transform->Translate(glm::vec3(2, 1, 0));
+    cone->AddComponent<AABB>(); // ->CalculateMinMax(cone->transform->model, true);
     std::cout << "Id cone: " << cone->getId() << std::endl;
-    //cone->aabb_box->CalculateMinMax(cone->transform.model, true);
+    //cone->aabb_box->CalculateMinMax(cone->transform->model, true);
+    cone->SetMaterial(lightMaterial);
     cone->SetShader(enginePtr->standart_render_shader);
     level->Add_Object(cone);
+
+    std::shared_ptr<Arrow> arrow1 = std::make_shared<Arrow>(1);
+    arrow1->transform->Translate(glm::vec3(0, 0, 0));
+    arrow1->transform->Rotate(glm::vec3(90.f, 0, 0));
+    arrow1->AddComponent<AABB>();
     
+    arrow1->SetMaterial(lightMaterial);
+    //Editor::arrow_x->SetMaterial(lightMaterial);
+    //Editor::arrow_x->SetShader(enginePtr->standart_render_shader);
+    arrow1->SetShader(enginePtr->standart_render_shader);
+    level->Add_Object(arrow1);
+
+    light->transform = mesh->transform;
+    shadow1_cam->transform = mesh->transform;
+    level->Add_Shadow(shadow1_cam, 2048);
+
     glViewport(0, 0, enginePtr->window.width, enginePtr->window.height);
     glEnable(GL_DEPTH_TEST);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // WireFrame
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glCullFace(GL_BACK);
+
+    Editor::EditorObjectsInit();
     while (!glfwWindowShouldClose(enginePtr->window.GLFW_window))
     {
         enginePtr->InputProcess();
-        Editor::PickingPhase();
 
+        //arrow1->transform->Rotate(glm::vec3(sin(glfwGetTime()) * 90.f, 0, 0));
+        //arrow1->transform->Translate(arrow1->transform->position + arrow1->transform->up / 50.f);
+        arrow1->GetComponent<AABB>()->CalculateMinMax(true);
         enginePtr->standart_render_shader->Activate();
 
-        enginePtr->standart_render_shader->setVec3("light.position", light->transform.position);
-        enginePtr->standart_render_shader->setVec3("light.AmbientStrength", glm::vec3(0.2f));
-        enginePtr->standart_render_shader->setVec3("light.DiffuseStrength", glm::vec3(0.5f));
-        enginePtr->standart_render_shader->setVec3("light.SpecularStrength", glm::vec3(1.0f));
-        enginePtr->standart_render_shader->setVec3("light.color", light->light_color);
+        enginePtr->standart_render_shader->setValue("light.position", light->transform->position);
+        enginePtr->standart_render_shader->setValue("light.AmbientStrength", glm::vec3(0.2f));
+        enginePtr->standart_render_shader->setValue("light.DiffuseStrength", glm::vec3(0.5f));
+        enginePtr->standart_render_shader->setValue("light.SpecularStrength", glm::vec3(1.0f));
+        enginePtr->standart_render_shader->setValue("light.color", light->light_color);
 
-        enginePtr->standart_render_shader->setVec3("viewPos", cam1->transform.position);
+        enginePtr->standart_render_shader->setValue("viewPos", cam1->transform->position);
+        enginePtr->standart_render_shader->setValue("lightSpaceMatrix", level->shadows[0]->GetRenderCam()->GetPVMatrix());
+
+        level->shadows[0]->GetRenderCam()->view = glm::lookAt(level->shadows[0]->GetRenderCam()->transform->position, glm::vec3(0.f), level->shadows[0]->GetRenderCam()->transform->up);
 
         enginePtr->PreRender();
         enginePtr->PostRender();
