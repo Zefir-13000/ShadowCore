@@ -38,20 +38,27 @@ int main() {
     std::shared_ptr<PointLight> light = std::make_shared<PointLight>(glm::vec3(1.0f), 1.0f);
     light->transform->Translate(glm::vec3(-2, 1, 0));
 
+    std::shared_ptr<Model> dragon = std::make_shared<Model>("Models/dragon.obj", MANDATORY);
+    dragon->transform->Scale(glm::vec3(0.5f));
+    dragon->transform->Translate(glm::vec3(0, 0.136f, 0));
+    dragon->transform->Update();
+    dragon->AddComponent<AABB>();
+    dragon->SetShader(enginePtr->standart_render_shader);
+    level->Add_Object(dragon);
+
 
     std::shared_ptr<Model> sponza = std::make_shared<Model>("Models/sponza.obj", MANDATORY);
     sponza->transform->Scale(glm::vec3(0.002f));
     sponza->transform->Translate(glm::vec3(0, 0, 0));
+    sponza->transform->Update();
     sponza->AddComponent<AABB>();
-    std::cout << "Id sponza: " << sponza->getId() << std::endl;
     sponza->SetShader(enginePtr->standart_render_shader);
     level->Add_Object(sponza);
     
     std::shared_ptr<Cube> mesh = std::make_shared<Cube>();
     mesh->transform->Scale(glm::vec3(0.1f));
-    mesh->transform->Translate(glm::vec3(-2, 1, 0));
+    mesh->transform->Translate(glm::vec3(-0.609f, 2.f, 0.f));
     mesh->AddComponent<AABB>();
-    std::cout << "Id mesh: " << mesh->getId() << std::endl;
     mesh->SetShader(enginePtr->standart_render_shader);
     mesh->SetMaterial(lightMaterial);
     level->Add_Object(mesh);
@@ -63,23 +70,10 @@ int main() {
 
     std::shared_ptr<Cone> cone = std::make_shared<Cone>(0.3f, 0.1f);
     cone->transform->Translate(glm::vec3(2, 1, 0));
-    cone->AddComponent<AABB>(); // ->CalculateMinMax(cone->transform->model, true);
-    std::cout << "Id cone: " << cone->getId() << std::endl;
-    //cone->aabb_box->CalculateMinMax(cone->transform->model, true);
+    cone->AddComponent<AABB>();
     cone->SetMaterial(lightMaterial);
     cone->SetShader(enginePtr->standart_render_shader);
     level->Add_Object(cone);
-
-    std::shared_ptr<Arrow> arrow1 = std::make_shared<Arrow>(1);
-    arrow1->transform->Translate(glm::vec3(0, 0, 0));
-    arrow1->transform->Rotate(glm::vec3(90.f, 0, 0));
-    arrow1->AddComponent<AABB>();
-    
-    arrow1->SetMaterial(lightMaterial);
-    //Editor::arrow_x->SetMaterial(lightMaterial);
-    //Editor::arrow_x->SetShader(enginePtr->standart_render_shader);
-    arrow1->SetShader(enginePtr->standart_render_shader);
-    level->Add_Object(arrow1);
 
     light->transform = mesh->transform;
     shadow1_cam->transform = mesh->transform;
@@ -95,10 +89,6 @@ int main() {
     while (!glfwWindowShouldClose(enginePtr->window.GLFW_window))
     {
         enginePtr->InputProcess();
-
-        //arrow1->transform->Rotate(glm::vec3(sin(glfwGetTime()) * 90.f, 0, 0));
-        //arrow1->transform->Translate(arrow1->transform->position + arrow1->transform->up / 50.f);
-        arrow1->GetComponent<AABB>()->CalculateMinMax(true);
         enginePtr->standart_render_shader->Activate();
 
         enginePtr->standart_render_shader->setValue("light.position", light->transform->position);

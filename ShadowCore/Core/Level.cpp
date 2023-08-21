@@ -12,7 +12,7 @@ std::shared_ptr<Object> Level::GetObjectByID(uint32_t id) {
 		if (obj->getId() == id) {
 			return obj;
 		}
-		for (std::shared_ptr<Object> child : std::dynamic_pointer_cast<RenderObject>(obj)->transform->children) {
+		for (std::shared_ptr<Object> child : std::dynamic_pointer_cast<RenderObject>(obj)->transform->GetChildren()) {
 			if (child->getId() == id) {
 				return child;
 			}

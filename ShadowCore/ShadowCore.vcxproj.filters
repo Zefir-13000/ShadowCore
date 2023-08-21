@@ -191,8 +191,5 @@
     <ClInclude Include="Helper\ModelLoading.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Helper\TransformHelper.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

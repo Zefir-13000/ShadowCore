@@ -23,6 +23,8 @@ void Model::LoadModel(std::string _path) {
     
     Model::name = scene->mRootNode->mName.C_Str();
     Model::ProcessNode(scene->mRootNode, scene);
+
+    Model::transform->Update();
 }
 
 std::shared_ptr<Object> Model::ProcessNode(aiNode* node, const aiScene* scene, glm::mat4 RootM) {
@@ -40,7 +42,7 @@ std::shared_ptr<Object> Model::ProcessNode(aiNode* node, const aiScene* scene, g
     }
 
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
-        transform->children.push_back(ProcessNode(node->mChildren[i], scene, nexttranslate));
+        transform->AddChild(ProcessNode(node->mChildren[i], scene, nexttranslate));
     }
 
     std::shared_ptr<RenderSequence> renderSeq = std::make_shared<RenderSequence>(meshData);
@@ -204,7 +206,7 @@ void Model::Render() {
             glBindVertexArray(0);
         }
 
-        for (std::shared_ptr<Object> child : Model::transform->children) {
+        for (std::shared_ptr<Object> child : Model::transform->GetChildren()) {
             if (child && child->IsRenderAble()) {
                 std::dynamic_pointer_cast<RenderObject>(child)->Render();
             }

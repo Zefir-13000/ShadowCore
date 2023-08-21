@@ -44,7 +44,7 @@ void AABB::TraverseChildren(std::shared_ptr<Object> obj, std::shared_ptr<AABB_Bo
             }
         }
 
-        for (std::shared_ptr<Object> child : Robj->transform->children) {
+        for (std::shared_ptr<Object> child : Robj->transform->GetChildren()) {
             if (!child->IsRenderAble()) {
                 continue;
             }

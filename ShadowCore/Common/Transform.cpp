@@ -85,3 +85,7 @@ void Transform::LocalScale(const glm::vec3& scale) {
 	Transform::LS = glm::scale(scale);
 	Transform::PrivateUpdate();
 }
+
+void Transform::AddChild(std::shared_ptr<Object> _child) {
+	Transform::children.push_back(_child);
+}

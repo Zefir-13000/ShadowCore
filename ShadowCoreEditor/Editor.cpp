@@ -105,7 +105,7 @@ bool OpenNodesToSelected(std::shared_ptr<Object> obj, const uint32_t selectedID)
     }
 
     if (obj->IsRenderAble()) {
-        for (std::shared_ptr<Object> child : std::dynamic_pointer_cast<RenderObject>(obj)->transform->children) {
+        for (std::shared_ptr<Object> child : std::dynamic_pointer_cast<RenderObject>(obj)->transform->GetChildren()) {
             if (OpenNodesToSelected(child, selectedID))
                 return true;
         }
@@ -125,7 +125,7 @@ void DrawHierarhy(std::shared_ptr<Object> obj) {
         OpenNodesToSelected(obj, Editor::selected_ObjectID);
     if (obj->IsRenderAble()) {
         std::shared_ptr<RenderObject> Robj = std::dynamic_pointer_cast<RenderObject>(obj);
-        if (Robj->transform->children.size() == 0)
+        if (Robj->transform->GetChildren().size() == 0)
             flags |= ImGuiTreeNodeFlags_Leaf;
         bool treeOpen = ImGui::TreeNodeEx(obj->name.c_str(), flags);
 
@@ -143,7 +143,7 @@ void DrawHierarhy(std::shared_ptr<Object> obj) {
         }
 
         if (treeOpen) {
-            for (std::shared_ptr<Object> child : Robj->transform->children) {
+            for (std::shared_ptr<Object> child : Robj->transform->GetChildren()) {
                 DrawHierarhy(child); // Recursively draw children
             }
 
@@ -263,7 +263,7 @@ _skip_render:
             OpenNodesToSelected(obj, Editor::selected_ObjectID);
         if (obj->IsRenderAble()) {
             std::shared_ptr<RenderObject> Robj = std::dynamic_pointer_cast<RenderObject>(obj);
-            if (Robj->transform->children.size() == 0)
+            if (Robj->transform->GetChildren().size() == 0)
                 flags |= ImGuiTreeNodeFlags_Leaf;
             bool treeOpen = ImGui::TreeNodeEx(obj->name.c_str(), flags);
 
@@ -281,7 +281,7 @@ _skip_render:
             }
 
             if (treeOpen) {
-                for (std::shared_ptr<Object> child : Robj->transform->children) {
+                for (std::shared_ptr<Object> child : Robj->transform->GetChildren()) {
                     DrawHierarhy(child); // Recursively draw children
                 }
                 
@@ -339,7 +339,6 @@ void Engine::InputProcess() {
     if (io.WantCaptureMouse || io.WantCaptureKeyboard) {
         return;
     }*/
-
 
     if (GetAsyncKeyState(VK_LBUTTON) && !Clicked) {
         Clicked = true;
@@ -426,55 +425,4 @@ void Engine::InputProcess() {
             Editor::selected_arrow = nullptr;
         }
     }
-
-    /*if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_PRESS && !Clicked) {
-        Clicked = true;
-        double mouseX;
-        double mouseY;
-        glfwGetCursorPos(window.GLFW_window, &mouseX, &mouseY);
-        glm::vec3 ray_dir = Ray::GetScreenToWorld(glm::vec2(mouseX, mouseY), glm::vec2(window.width, window.height), level->main_cam->proj, level->main_cam->view, level->main_cam->transform->position);
-        std::shared_ptr<Ray> ray = std::make_shared<Ray>(level->main_cam->transform->position, ray_dir);
-        std::shared_ptr<Mesh> obj1 = std::dynamic_pointer_cast<Mesh>(level->objects[0]);
-
-        float t = 0;
-        std::shared_ptr<AABB> aabb = obj1->GetComponent<AABB>();
-        if (aabb != nullptr) {
-            //std::cout << "AABB - min: X: " << obj1->aabb_box->box.min.x << " Y: " << obj1->aabb_box->box.min.y << " Z: " << obj1->aabb_box->box.min.z << " max: X: " << obj1->aabb_box->box.max.x << " Y: " << obj1->aabb_box->box.max.y << " Z: " << obj1->aabb_box->box.max.z << std::endl;
-            std::cout << (t = ray->RayIntersectsAABB(aabb->box, obj1->transform->model)) << std::endl;
-            //std::cout << "Ray - X: " << ray_dir.x << " Y: " << ray_dir.y << " Z: " << ray_dir.z << std::endl;
-            //std::cout << "CamRay - X: " << level->main_cam->transform->forward.x << " Y: " << level->main_cam->transform->forward.y << " Z: " << level->main_cam->transform->forward.z << std::endl;
-        }
-        if (t > 0) {
-            glm::vec3 hitPoint = ray->origin + ray_dir * t;
-            std::shared_ptr<Point> ray_point = std::make_shared<Point>(hitPoint, 8.f);
-
-            std::shared_ptr<Line> ray_line = std::make_shared<Line>(ray->origin, ray->origin + ray_dir * 100.f);
-            level->Add_Object(std::static_pointer_cast<Object>(ray_line));
-            level->Add_Object(std::static_pointer_cast<Object>(ray_point));
-
-            //obj1->RemoveComponent(aabb);
-
-        }
-        else {
-            std::shared_ptr<Line> ray_line = std::make_shared<Line>(ray->origin, ray->origin + ray_dir * 100.f);
-            level->Add_Object(std::static_pointer_cast<Object>(ray_line));
-        }
-    }
-    else if (glfwGetMouseButton(window.GLFW_window, 0) == GLFW_RELEASE) {
-        Clicked = false;
-    }
-    if (glfwGetKey(window.GLFW_window, GLFW_KEY_Q) == GLFW_PRESS) {
-        std::vector<std::shared_ptr<Object>> objsToErase = {};
-        for (std::shared_ptr<Object> obj : level->objects) {
-            if (obj->type == MESH) {
-                std::shared_ptr<Mesh> mesh = std::dynamic_pointer_cast<Mesh>(obj);
-                if (mesh->meshType == LINE_TYPE || mesh->meshType == POINT_TYPE) {
-                    objsToErase.push_back(obj);
-                }
-            }
-        }
-
-        for (std::shared_ptr<Object> obj : objsToErase)
-            level->Destroy_Object(obj);
-    }*/
 }

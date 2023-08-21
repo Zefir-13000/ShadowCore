@@ -183,7 +183,6 @@
   <ItemGroup>
     <ClInclude Include="Core\Classes.h" />
     <ClInclude Include="Helper\ModelLoading.h" />
-    <ClInclude Include="Helper\TransformHelper.h" />
     <ClInclude Include="Libraries\Include\imgui\imconfig.h" />
     <ClInclude Include="Libraries\Include\imgui\imgui.h" />
     <ClInclude Include="Libraries\Include\imgui\imgui_impl_glfw.h" />

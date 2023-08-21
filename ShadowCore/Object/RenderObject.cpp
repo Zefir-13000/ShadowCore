@@ -125,7 +125,7 @@ void RenderObject::Render(std::shared_ptr<Shader> _render_shader, bool ignore_in
         }
     }
 
-    for (std::shared_ptr<Object> child : RenderObject::transform->children) {
+    for (std::shared_ptr<Object> child : RenderObject::transform->GetChildren()) {
         if (child && child->IsRenderAble()) {
             std::dynamic_pointer_cast<RenderObject>(child)->Render(_render_shader, ignore_inputs);
         }
@@ -173,7 +173,7 @@ void RenderObject::Render() {
         RenderObject::render_shader = enginePtr->debug_shader;
     }
 
-    for (std::shared_ptr<Object> child : RenderObject::transform->children) {
+    for (std::shared_ptr<Object> child : RenderObject::transform->GetChildren()) {
         if (child && child->IsRenderAble()) {
             std::dynamic_pointer_cast<RenderObject>(child)->Render();
         }

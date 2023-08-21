@@ -13,6 +13,9 @@ namespace SC {
 		glm::mat4 model = glm::mat4(1.);
 		glm::mat4 local_model = glm::mat4(1.f);
 
+		std::vector<std::shared_ptr<Object>> children = {};
+		std::shared_ptr<Object> parent = nullptr;
+
 		void PrivateUpdate();
 	public:
 		Transform() {};
@@ -30,6 +33,19 @@ namespace SC {
 		glm::mat4 GetMatrix() const { return Transform::model; }
 		glm::mat4 GetLocalMatrix() const { return Transform::local_model; }
 
+		void AddChild(std::shared_ptr<Object> _child);
+		const std::vector<std::shared_ptr<Object>>& GetChildren() const {
+			return Transform::children;
+		}
+
+		void SetParent(std::shared_ptr<Object> _parent) {
+			Transform::parent = _parent;
+		}
+		std::shared_ptr<Object> GetParent() {
+			return Transform::parent;
+		}
+
+
 		glm::vec3 forward{}, up{}, right{};
 
 		glm::vec3 position{};
@@ -40,9 +56,7 @@ namespace SC {
 		glm::vec3 local_rotation{};
 		glm::vec3 local_scale = glm::vec3(1.);
 
-		Object* this_obj = nullptr;
-		std::shared_ptr<Object> parent = nullptr;
-		std::vector<std::shared_ptr<Object>> children = {};
+		RenderObject* this_obj = nullptr;
 	};
 
 };
