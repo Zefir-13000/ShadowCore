@@ -52,6 +52,7 @@ namespace SC {
 			return this->type == RENDER_OBJECT || this->type == MESH;
 		}
 
+		virtual void Update() = 0;
 		void Destroy();
 
 		virtual ~Object() {}

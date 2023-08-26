@@ -60,9 +60,9 @@ namespace SC {
         }
 
         void Render() override {
-            enginePtr->debug_shader->Activate();
-            enginePtr->debug_shader->setValue("color", glm::vec3(0.8f));
-            enginePtr->debug_shader->setValue("MVP", enginePtr->level->main_cam->proj * enginePtr->level->main_cam->view);
+            enginePtr->GetDebugShader()->Activate();
+            enginePtr->engine_active_shader->setValue("color", glm::vec3(0.8f));
+            enginePtr->engine_active_shader->setValue("MVP", enginePtr->level->main_cam->proj * enginePtr->level->main_cam->view);
 
             for (std::shared_ptr<GeometryData> geom_data : renderSeq->geoms_data) {
                 glBindVertexArray(geom_data->VAO);

@@ -4,7 +4,7 @@ out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
-in vec4 FragPosLightSpace;
+in float ClipZ;
 
 uniform sampler2D diffuse_texture;
 uniform int has_diffuse_texture;
@@ -15,17 +15,23 @@ uniform int has_specular_texture;
 uniform sampler2D emission_texture;
 uniform int has_emission_texture;
 
-uniform sampler2D shadow_map;
-uniform int has_shadow_map;
+uniform sampler2DArray CSM_shadow_map;
 
+uniform float farPlane;
 uniform vec3 viewPos;
+uniform mat4 lightSpaceMatrices[16];
+uniform float cascadeSplits[16];
+
+uniform mat4 view;
+uniform int cascadeCount;
+
+uniform int receive_shadows;
 
 // Engine Uniform
 uniform float time;
 
-struct Light {
-    vec3 position;
-    vec3 color;
+struct DirectionalLight {
+    vec3 direction;
 
     vec3 AmbientStrength;
     vec3 DiffuseStrength;
@@ -40,17 +46,26 @@ struct Material {
     float Shininess;
 };
 
-uniform Light light;
+uniform DirectionalLight light;
 uniform Material material;
 
-float SampleShadowMap(vec2 coords, float compare)
+float SampleShadowMap(vec2 coords, float compare, int cascadeIndex)
 {
     if(compare > 1.0)
         return 1.0;
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
+    vec3 lightDir = normalize(-light.direction); // light.position - FragPos
     float bias = max(0.0005 * (1.0 - dot(norm, lightDir)), 0.00005);
-    float closestDepth = texture(shadow_map, coords.xy).r;
+    const float biasModifier = 0.5f;
+    if (cascadeIndex == cascadeCount)
+    {
+        bias *= 2.f;
+    }
+    else
+    {
+        bias *= 1.5f;
+    }
+    float closestDepth = texture(CSM_shadow_map, vec3(coords.xy, cascadeIndex)).r;
     float currentDepth = compare;
     float shadow = 1.0;
     if (currentDepth - bias > closestDepth) {
@@ -59,23 +74,23 @@ float SampleShadowMap(vec2 coords, float compare)
 
     return shadow;
 }
-float SampleShadowMapLinear(vec2 coords, float compare, vec2 resolution, vec2 texelSize)
+float SampleShadowMapLinear(vec2 coords, float compare, vec2 resolution, vec2 texelSize, int cascadeIndex)
 {
     vec2 pixelPos = coords / texelSize;
     vec2 fracPart = fract(pixelPos);
     vec2 startTexel = (pixelPos - fracPart) * texelSize;
 
-    float blTexel = SampleShadowMap(startTexel, compare);
-    float brTexel = SampleShadowMap(startTexel + vec2(texelSize.x, 0.0), compare);
-    float tlTexel = SampleShadowMap(startTexel + vec2(0.0, texelSize.y), compare);
-    float trTexel = SampleShadowMap(startTexel + texelSize, compare);
+    float blTexel = SampleShadowMap(startTexel, compare, cascadeIndex);
+    float brTexel = SampleShadowMap(startTexel + vec2(texelSize.x, 0.0), compare, cascadeIndex);
+    float tlTexel = SampleShadowMap(startTexel + vec2(0.0, texelSize.y), compare, cascadeIndex);
+    float trTexel = SampleShadowMap(startTexel + texelSize, compare, cascadeIndex);
 
     float mixA = mix(blTexel, tlTexel, fracPart.y);
     float mixB = mix(brTexel, trTexel, fracPart.y);
 
     return mix(mixA, mixB, fracPart.x);
 }
-float SampleShadowMapPCF(vec2 coords, float compare, vec2 resolution, vec2 texelSize, int filterSize)
+float SampleShadowMapPCF(vec2 coords, float compare, vec2 resolution, vec2 texelSize, int filterSize, int cascadeIndex)
 {
     float NUM_SAMPLES = float(filterSize);
     float SAMPLES_START = (NUM_SAMPLES - 1.0f) / 2.0f;
@@ -87,17 +102,78 @@ float SampleShadowMapPCF(vec2 coords, float compare, vec2 resolution, vec2 texel
         for (float x = -SAMPLES_START; x <= SAMPLES_START; x += 1.0f)
         {
             vec2 coordsOffset = vec2(x, y) * texelSize;
-            result += SampleShadowMapLinear(coords + coordsOffset, compare, resolution, texelSize);
+            result += SampleShadowMapLinear(coords + coordsOffset, compare, resolution, texelSize, cascadeIndex);
         }
     }
     return result / NUM_SAMPLES_SQUARED;
+}
+
+float ShadowCalculation(vec3 fragPosWorldSpace)
+{
+    vec4 FragPosView = view * vec4(FragPos.xyz, 1.0);
+    float depth_val = abs(FragPosView.z);
+    int layer = -1;
+    for (int i = 0; i < cascadeCount; ++i)
+    {
+        if (ClipZ <= cascadeSplits[i])
+        {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1)
+    {
+        layer = cascadeCount;
+    }
+
+    vec4 FragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
+    vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (currentDepth > 1.0)
+    {
+        return 0.0;
+    }
+    // calculate bias (based on depth map resolution and slope)
+    vec3 normal = normalize(Normal);
+    vec3 lightDir = normalize(light.direction);
+    float bias = 0.0005; //max(0.0005 * (1.0 - dot(normal, lightDir)), 0.00005);
+    const float biasModifier = 0.5f;
+    /*if (layer == cascadeCount)
+    {
+        bias *= 1 / (100.0 * biasModifier);
+    }
+    else
+    {
+        bias *= 1 / (cascadeSplits[layer] * biasModifier);
+    }*/
+
+    // PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / vec2(textureSize(CSM_shadow_map, 0));
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(CSM_shadow_map, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+        
+    return shadow;
 }
 
 
 void main()
 {
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos);
+    vec3 lightDir = normalize(light.direction);
 
     float diff = max(dot(norm, lightDir), 0.0);
 
@@ -143,10 +219,30 @@ void main()
         emission = material.Emission;
     }
 
-    vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
-    projCoords = projCoords * 0.5 + 0.5;
-    shadow = SampleShadowMapPCF(projCoords.xy, projCoords.z, textureSize(shadow_map, 0), 1.0 / textureSize(shadow_map, 0), 5);
-    
+  
+    vec4 FragPosView = view * vec4(FragPos.xyz, 1.0);
+    float depth_val = abs(FragPosView.z);
+    int layer = -1;
+    for (int i = 0; i < cascadeCount; ++i)
+    {
+        if (ClipZ <= cascadeSplits[i])
+        {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1)
+    {
+        layer = cascadeCount;
+    }
+
+    if (receive_shadows == 1) {
+        vec4 FragPosLightSpace = lightSpaceMatrices[layer] * vec4(FragPos, 1.0);
+        vec3 projCoords = FragPosLightSpace.xyz / FragPosLightSpace.w;
+        projCoords = projCoords * 0.5 + 0.5;
+        shadow = SampleShadowMapPCF(projCoords.xy, projCoords.z, textureSize(CSM_shadow_map, 0).xy, 1.0 / textureSize(CSM_shadow_map, 0).xy, 5, layer);
+    }
 
     FragColor = vec4(ambient + shadow * (diffuse + specular) + emission, 1.0);
+
 } 

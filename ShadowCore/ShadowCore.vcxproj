@@ -166,12 +166,13 @@
     <ClCompile Include="Core\Core.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Level.cpp" />
-    <ClCompile Include="Object\Light.cpp" />
     <ClCompile Include="Common\Material.cpp" />
+    <ClCompile Include="Object\Light.cpp" />
     <ClCompile Include="Object\Mesh.cpp" />
     <ClCompile Include="Object\Model.cpp" />
     <ClCompile Include="Object\Object.cpp" />
     <ClCompile Include="Object\PrimitiveObjects.cpp" />
+    <ClCompile Include="Object\ShadowMap.cpp" />
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Component\RayObjects.cpp" />
     <ClCompile Include="Object\RenderObject.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="Object\Model.h" />
     <ClInclude Include="Object\Object.h" />
     <ClInclude Include="Object\PrimitiveObjects.h" />
+    <ClInclude Include="Object\ShadowMap.h" />
     <ClInclude Include="Ray.h" />
     <ClInclude Include="Component\RayObjects.h" />
     <ClInclude Include="Object\RenderObject.h" />

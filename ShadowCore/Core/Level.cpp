@@ -34,12 +34,6 @@ std::shared_ptr<Object> Level::Add_Object(std::shared_ptr<Object> _object) {
 	return _object;
 }
 
-
-void Level::Add_Shadow(std::shared_ptr<Camera> _render_cam, uint32_t _shadow_size) {
-	std::shared_ptr<ShadowMapTexture> shadow_map = std::make_shared<ShadowMapTexture>(_render_cam, _shadow_size);
-	Level::shadows.push_back(shadow_map);
-}
-
 void Level::Destroy_Object(std::shared_ptr<Object> object) {
 	Level::objects.erase(std::remove(Level::objects.begin(), Level::objects.end(), object), Level::objects.end());
 }
@@ -61,5 +55,11 @@ void Level::Render(std::shared_ptr<Shader> _render_shader) {
 
 			rd->Render(_render_shader);
 		}
+	}
+}
+
+void Level::Update() {
+	for (std::shared_ptr<Object> object : objects) {
+		object->Update();
 	}
 }

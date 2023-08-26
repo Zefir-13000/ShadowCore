@@ -31,6 +31,21 @@ Camera::Camera(int _window_width, int _window_height, float _FOV, CameraType _ca
 	UpdateProjection(_window_width, _window_height);
 }
 
+std::vector<glm::vec4> Camera::getFrustrumCornersWorldSpace() {
+	const glm::mat4 inv_pv = glm::inverse(Camera::GetPVMatrix());
+	std::vector<glm::vec4> frustrumCorners;
+	for (uint32_t x = 0; x < 2; ++x) {
+		for (uint32_t y = 0; y < 2; ++y) {
+			for (uint32_t z = 0; z < 2; ++z) {
+				const glm::vec4 pt = inv_pv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+				frustrumCorners.push_back(pt / pt.w);
+			}
+		}
+	}
+
+	return frustrumCorners;
+}
+
 void FlyCamera::Movement(GLFWwindow* _window, int _width, int _height)
 {
 	if (!GetAsyncKeyState(VK_LBUTTON) && GetAsyncKeyState(VK_RBUTTON) && firstPress && Camera::isActive) {

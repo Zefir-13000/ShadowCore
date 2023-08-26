@@ -237,7 +237,7 @@ void ShadowMapTexture::Render(int tex_num) {
     glClear(GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, ShadowMapTexture::size_x, ShadowMapTexture::size_y);
     // Draw Scene
-    Core::Engine->level->Render(Core::Engine->shadow_shader);
+    Core::Engine->level->Render(Core::Engine->GetDefaultDirectionalShadowShader());
 
     glViewport(0, 0, Core::Engine->window.width, Core::Engine->window.height);
 

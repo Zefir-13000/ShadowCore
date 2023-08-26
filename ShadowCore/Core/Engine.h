@@ -29,15 +29,24 @@ namespace SC {
 		Window window;
 		std::unique_ptr<EventHandler> eventHandler = std::make_unique<EventHandler>();
 		std::shared_ptr<Level> level = std::make_shared<Level>("Level");
-
-		std::shared_ptr<Shader> standart_render_shader = nullptr;
-		std::shared_ptr<Shader> debug_shader = nullptr;
-		std::shared_ptr<Shader> shadow_shader = nullptr;
+		std::vector<std::shared_ptr<Shader>> engine_shaders = {};
+		std::shared_ptr<Shader> engine_active_shader = nullptr;
 
 		void Init();
 		void Init_Shaders();
+		void Update_Shaders();
 		void Tick();
 		virtual void PostInit();
+
+		std::shared_ptr<Shader> GetDefaultShader() {
+			return engine_shaders[0];
+		}
+		std::shared_ptr<Shader> GetDebugShader() {
+			return engine_shaders[1];
+		}
+		std::shared_ptr<Shader> GetDefaultDirectionalShadowShader() {
+			return engine_shaders[2];
+		}
 
 		virtual void DefaultPreRender();
 		virtual void DefaultPostRender();

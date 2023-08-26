@@ -43,6 +43,10 @@ void Editor::EditorObjectsInit() {
         arrow_y = std::make_shared<Arrow>(1);
         arrow_z = std::make_shared<Arrow>(1);
 
+        arrow_x->SetShader(Core::Engine->GetDebugShader());
+        arrow_y->SetShader(Core::Engine->GetDebugShader());
+        arrow_z->SetShader(Core::Engine->GetDebugShader());
+
         arrow_x->transform->Scale(glm::vec3(0.5f));
         arrow_y->transform->Scale(glm::vec3(0.5f));
         arrow_z->transform->Scale(glm::vec3(0.5f));
@@ -53,23 +57,17 @@ void Editor::EditorObjectsInit() {
 
         arrow_x->transform->Rotate(glm::vec3(0.f, 0.f, 90.f));
         arrow_z->transform->Rotate(glm::vec3(90.f, 0.f, 0.f));
-        arrow_x->shader_input = std::make_shared<ShaderInputCollection>(arrow_x->render_shader);
-        arrow_x->shader_input->AddInput("color", glm::vec3(1.f, 0.f, 0.f));
-        arrow_y->shader_input = std::make_shared<ShaderInputCollection>(arrow_y->render_shader);
-        arrow_y->shader_input->AddInput("color", glm::vec3(0.f, 1.f, 0.f));
-        arrow_z->shader_input = std::make_shared<ShaderInputCollection>(arrow_z->render_shader);
-        arrow_z->shader_input->AddInput("color", glm::vec3(0.f, 0.f, 1.f));
+        arrow_x->render_data->shader_input = std::make_shared<ShaderInputCollection>(arrow_x->render_data->render_shader);
+        arrow_x->render_data->shader_input->AddInput("color", glm::vec3(1.f, 0.f, 0.f));
+        arrow_y->render_data->shader_input = std::make_shared<ShaderInputCollection>(arrow_y->render_data->render_shader);
+        arrow_y->render_data->shader_input->AddInput("color", glm::vec3(0.f, 1.f, 0.f));
+        arrow_z->render_data->shader_input = std::make_shared<ShaderInputCollection>(arrow_z->render_data->render_shader);
+        arrow_z->render_data->shader_input->AddInput("color", glm::vec3(0.f, 0.f, 1.f));
     }
 }
 
 void CustomPreRender(Engine* engine) {
-    glCullFace(GL_FRONT);
-    for (std::shared_ptr<ShadowMapTexture> shadowMap : engine->level->shadows) {
-        Core::Engine->shadow_shader->Activate();
-        Core::Engine->shadow_shader->setValue("lightSpaceMatrix", shadowMap->GetRenderCam()->GetPVMatrix());
-        shadowMap->Render(5);
-    }
-    glCullFace(GL_BACK);
+    engine->Tick();
 
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -94,8 +92,6 @@ void CustomPreRender(Engine* engine) {
         }
         Editor::viewport->UnBind();
     }
-
-    engine->Tick();
 }
 
 bool OpenNodesToSelected(std::shared_ptr<Object> obj, const uint32_t selectedID) {
@@ -350,19 +346,19 @@ void Engine::InputProcess() {
             if (Pixel.ObjectID == Editor::arrow_x->getId()) {
                 Editor::arrow_dragged = true;
                 Editor::selected_arrow = Editor::arrow_x;
-                Editor::selected_arrow->shader_input->AddInput("color", glm::vec3(1.0f, 1.0f, 0.0f));
+                Editor::selected_arrow->render_data->shader_input->AddInput("color", glm::vec3(1.0f, 1.0f, 0.0f));
                 Editor::start_objectDrag = std::dynamic_pointer_cast<RenderObject>(Editor::selected_Object)->transform->position;
             }
             else if (Pixel.ObjectID == Editor::arrow_y->getId()) {
                 Editor::arrow_dragged = true;
                 Editor::selected_arrow = Editor::arrow_y;
-                Editor::selected_arrow->shader_input->AddInput("color", glm::vec3(1.0f, 1.0f, 0.0f));
+                Editor::selected_arrow->render_data->shader_input->AddInput("color", glm::vec3(1.0f, 1.0f, 0.0f));
                 Editor::start_objectDrag = std::dynamic_pointer_cast<RenderObject>(Editor::selected_Object)->transform->position;
             }
             else if (Pixel.ObjectID == Editor::arrow_z->getId()) {
                 Editor::arrow_dragged = true;
                 Editor::selected_arrow = Editor::arrow_z;
-                Editor::selected_arrow->shader_input->AddInput("color", glm::vec3(1.0f, 1.0f, 0.0f));
+                Editor::selected_arrow->render_data->shader_input->AddInput("color", glm::vec3(1.0f, 1.0f, 0.0f));
                 Editor::start_objectDrag = std::dynamic_pointer_cast<RenderObject>(Editor::selected_Object)->transform->position;
             }
             else {
@@ -419,9 +415,9 @@ void Engine::InputProcess() {
         Clicked = false;
         if (Editor::arrow_dragged) {
             Editor::arrow_dragged = false;
-            Editor::arrow_x->shader_input->AddInput("color", glm::vec3(1.0f, 0.0f, 0.0f));
-            Editor::arrow_y->shader_input->AddInput("color", glm::vec3(0.0f, 1.0f, 0.0f));
-            Editor::arrow_z->shader_input->AddInput("color", glm::vec3(0.0f, 0.0f, 1.0f));
+            Editor::arrow_x->render_data->shader_input->AddInput("color", glm::vec3(1.0f, 0.0f, 0.0f));
+            Editor::arrow_y->render_data->shader_input->AddInput("color", glm::vec3(0.0f, 1.0f, 0.0f));
+            Editor::arrow_z->render_data->shader_input->AddInput("color", glm::vec3(0.0f, 0.0f, 1.0f));
             Editor::selected_arrow = nullptr;
         }
     }

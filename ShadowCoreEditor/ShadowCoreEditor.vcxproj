@@ -155,6 +155,7 @@
     <None Include="Shaders\Picking.frag" />
     <None Include="Shaders\Picking.vert" />
     <None Include="Shaders\Shadow.frag" />
+    <None Include="Shaders\Shadow.geom" />
     <None Include="Shaders\Shadow.vert" />
   </ItemGroup>
   <ItemGroup>

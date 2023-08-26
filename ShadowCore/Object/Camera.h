@@ -17,11 +17,12 @@ namespace SC {
 		CameraMoveType cam_move_type = STATIC_CAM;
 
 		glm::mat4 view{}, proj{};
-		float near_plane = 0.1f, far_plane = 100.f;
+		float near_plane = 0.01f, far_plane = 100.f;
 
 		void UpdateProjection(int _width, int _height);
 		void UpdateView();
 		glm::mat4 GetPVMatrix();
+		std::vector<glm::vec4> getFrustrumCornersWorldSpace();
 		void SetActive(bool _isActive);
 
 		Camera(int _window_width, int _window_height, float _FOV = 60.f, CameraType _cam_type = PERSPECTIVE);

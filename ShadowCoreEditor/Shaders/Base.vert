@@ -6,15 +6,15 @@ layout (location = 2) in vec3 aNormal;
 out vec2 TexCoords;
 out vec3 Normal;
 out vec3 FragPos;
-out vec4 FragPosLightSpace;
+out float ClipZ;
 
-uniform mat4 model, MVP, lightSpaceMatrix;
+uniform mat4 model, MVP;
 
 void main()
 {
     gl_Position = MVP * vec4(aPos, 1.0);
     FragPos = vec3(model * vec4(aPos, 1.0));
-    FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
     TexCoords = aTexCoords;
-    Normal = Normal = mat3(transpose(inverse(model))) * aNormal;
+    Normal = mat3(transpose(inverse(model))) * aNormal;
+    ClipZ = gl_Position.z;
 }

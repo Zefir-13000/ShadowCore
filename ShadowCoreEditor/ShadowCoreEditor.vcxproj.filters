@@ -46,6 +46,7 @@
     </None>
     <None Include="Shaders\Shadow.vert" />
     <None Include="Shaders\Shadow.frag" />
+    <None Include="Shaders\Shadow.geom" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.h">

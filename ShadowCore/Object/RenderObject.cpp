@@ -50,7 +50,8 @@ RenderObject::RenderObject(std::string _name, std::shared_ptr<GeometryData> _geo
     RenderObject::type = RENDER_OBJECT;
     RenderObject::renderSeq = std::make_shared<RenderSequence>(std::initializer_list<std::shared_ptr<GeometryData>>{ _geom_data });
 
-    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::render_data = std::make_shared<RenderData>();
+    RenderObject::render_data->render_shader = enginePtr->GetDefaultShader();
     RenderObject::transform->this_obj = this;
 }
 
@@ -59,7 +60,8 @@ RenderObject::RenderObject(std::shared_ptr<GeometryData> _geom_data, UseLessType
     RenderObject::type = RENDER_OBJECT;
     RenderObject::renderSeq = std::make_shared<RenderSequence>(std::initializer_list<std::shared_ptr<GeometryData>>{ _geom_data });
 
-    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::render_data = std::make_shared<RenderData>();
+    RenderObject::render_data->render_shader = enginePtr->GetDefaultShader();
     RenderObject::transform->this_obj = this;
 }
 
@@ -69,7 +71,8 @@ RenderObject::RenderObject(std::string _name, std::shared_ptr<RenderSequence> _r
     RenderObject::type = RENDER_OBJECT;
     RenderObject::renderSeq = _render_seq;
 
-    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::render_data = std::make_shared<RenderData>();
+    RenderObject::render_data->render_shader = enginePtr->GetDefaultShader();
     RenderObject::transform->this_obj = this;
 }
 
@@ -78,18 +81,22 @@ RenderObject::RenderObject(std::shared_ptr<RenderSequence> _render_seq, UseLessT
     RenderObject::type = RENDER_OBJECT;
     RenderObject::renderSeq = _render_seq;
 
-    RenderObject::render_shader = enginePtr->debug_shader;
+    RenderObject::render_data = std::make_shared<RenderData>();
+    RenderObject::render_data->render_shader = enginePtr->GetDefaultShader();
     RenderObject::transform->this_obj = this;
 }
 
 
 void RenderObject::SetShader(std::shared_ptr<Shader> shader) {
-    RenderObject::render_shader = shader;
+    RenderObject::render_data->render_shader = shader;
+    if (RenderObject::render_data->shader_input != nullptr) {
+        RenderObject::render_data->shader_input = std::make_shared<ShaderInputCollection>(shader);
+    }
 }
 
 void RenderObject::Render(std::shared_ptr<Shader> _render_shader, bool ignore_inputs) {
-    if (Core::isEnableEditor) //  && this->getId() == Core::selected_ObjectID
-        RenderComponents();
+    //if (Core::isEnableEditor) //  && this->getId() == Core::selected_ObjectID
+    //   RenderComponents();
     if (_render_shader != nullptr) {
         _render_shader->Activate();
 
@@ -97,19 +104,19 @@ void RenderObject::Render(std::shared_ptr<Shader> _render_shader, bool ignore_in
         _render_shader->setValue("model", RenderObject::transform->GetMatrix());
         _render_shader->setValue("color", glm::vec3(0.8f));
 
-        if (Core::Engine->level->shadows.size() > 0) {
-            _render_shader->setValue("lightSpaceMatrix", Core::Engine->level->shadows[0]->GetRenderCam()->GetPVMatrix());
-            _render_shader->setValue("shadow_map", 5);
-            Core::Engine->level->shadows[0]->Bind(5, false);
-            _render_shader->setValue("has_shadow_map", 1);
+        if (RenderObject::render_data->receive_shadows) {
+            _render_shader->setValue("receive_shadows", 1);
+        }
+        else {
+            _render_shader->setValue("receive_shadows", 0);
         }
 
         if (Core::isEnableEditor) {
             _render_shader->setValue("ObjectIndex", static_cast<uint32_t>(getId()));
         }
 
-        if (!ignore_inputs && RenderObject::shader_input != nullptr) {
-            RenderObject::shader_input->BindAllToShader();
+        if (!ignore_inputs && RenderObject::render_data->shader_input != nullptr) {
+            RenderObject::render_data->shader_input->BindAllToShader();
         }
 
         for (std::shared_ptr<GeometryData> geom_data : renderSeq->geoms_data) {
@@ -133,28 +140,28 @@ void RenderObject::Render(std::shared_ptr<Shader> _render_shader, bool ignore_in
 }
 
 void RenderObject::Render() {
-    if (Core::isEnableEditor) //  && this->getId() == Editor::selected_ObjectID
-        RenderComponents();
-    if (RenderObject::render_shader != nullptr) {
-        RenderObject::render_shader->Activate();
+    //if (Core::isEnableEditor) //  && this->getId() == Editor::selected_ObjectID
+    //    RenderComponents();
+    if (RenderObject::render_data->render_shader != nullptr) {
+        RenderObject::render_data->render_shader->Activate();
 
-        RenderObject::render_shader->setValue("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform->GetMatrix());
-        RenderObject::render_shader->setValue("model", RenderObject::transform->GetMatrix());
-        RenderObject::render_shader->setValue("color", glm::vec3(0.8f));
+        RenderObject::render_data->render_shader->setValue("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view * RenderObject::transform->GetMatrix());
+        RenderObject::render_data->render_shader->setValue("model", RenderObject::transform->GetMatrix());
+        RenderObject::render_data->render_shader->setValue("color", glm::vec3(0.8f));
 
         if (Core::isEnableEditor) {
-            RenderObject::render_shader->setValue("ObjectIndex", static_cast<uint32_t>(getId()));
+            RenderObject::render_data->render_shader->setValue("ObjectIndex", static_cast<uint32_t>(getId()));
         }
 
-        if (Core::Engine->level->shadows.size() > 0) {
-            RenderObject::render_shader->setValue("lightSpaceMatrix", Core::Engine->level->shadows[0]->GetRenderCam()->GetPVMatrix());
-            RenderObject::render_shader->setValue("shadow_map", 5);
-            Core::Engine->level->shadows[0]->Bind(5, false);
-            RenderObject::render_shader->setValue("has_shadow_map", 1);
+        if (RenderObject::render_data->receive_shadows) {
+            render_data->render_shader->setValue("receive_shadows", 1);
+        }
+        else {
+            render_data->render_shader->setValue("receive_shadows", 0);
         }
 
-        if (RenderObject::shader_input != nullptr) {
-            RenderObject::shader_input->BindAllToShader();
+        if (RenderObject::render_data->shader_input != nullptr) {
+            RenderObject::render_data->shader_input->BindAllToShader();
         }
 
         for (std::shared_ptr<GeometryData> geom_data : renderSeq->geoms_data) {
@@ -169,8 +176,8 @@ void RenderObject::Render() {
             glBindVertexArray(0);
         }
     }
-    else if (RenderObject::render_shader == nullptr) {
-        RenderObject::render_shader = enginePtr->debug_shader;
+    else if (RenderObject::render_data->render_shader == nullptr) {
+        RenderObject::render_data->render_shader = enginePtr->GetDefaultShader();
     }
 
     for (std::shared_ptr<Object> child : RenderObject::transform->GetChildren()) {
@@ -183,9 +190,9 @@ void RenderObject::Render() {
 void RenderObject::RenderComponents() {
     for (std::shared_ptr<Component> component : components) {
         if (component->component_type == RENDER_COMPONENT) {
-            enginePtr->debug_shader->Activate();
-            enginePtr->debug_shader->setValue("color", glm::vec3(0.8f));
-            enginePtr->debug_shader->setValue("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view);
+            enginePtr->GetDebugShader()->Activate();
+            enginePtr->engine_active_shader->setValue("color", glm::vec3(0.8f));
+            enginePtr->engine_active_shader->setValue("MVP", Core::Engine->level->main_cam->proj * Core::Engine->level->main_cam->view);
 
             component->Render();
         }
@@ -198,13 +205,9 @@ void RenderObject::UpdateComponents() {
     }
 }
 
-template <typename T> 
-void RenderObject::AddShaderInput(std::string& name, const T& value) {
-    if (RenderObject::shader_input == nullptr) {
-        if (RenderObject::render_shader == nullptr) {
-            RenderObject::render_shader = enginePtr->debug_shader;
-        }
-        RenderObject::shader_input = std::make_shared<ShaderInputCollection>(RenderObject::render_shader);
+void RenderObject::Update() {
+    RenderObject::UpdateComponents();
+    for (std::shared_ptr<Object> child : transform->GetChildren()) {
+        child->Update();
     }
-    //RenderObject::shader_input->AddInput(name, value);
 }

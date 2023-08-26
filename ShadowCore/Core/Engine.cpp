@@ -15,9 +15,13 @@ Engine::Engine() : preRenderFunction(std::bind(&Engine::DefaultPreRender, this))
 }
 
 void Engine::Init_Shaders() {
-	Engine::standart_render_shader = std::make_shared<SC::Shader>("Base");
-	Engine::debug_shader = std::make_shared<SC::Shader>("Debug");
-	Engine::shadow_shader = std::make_shared<SC::Shader>("Shadow");
+	std::shared_ptr<Shader> standart_render_shader = std::make_shared<SC::Shader>("Base");
+	std::shared_ptr<Shader> debug_shader = std::make_shared<SC::Shader>("Debug");
+	std::shared_ptr<Shader> shadow_shader = std::make_shared<SC::Shader>("Shadow");
+
+	Engine::engine_shaders.push_back(standart_render_shader);
+	Engine::engine_shaders.push_back(debug_shader);
+	Engine::engine_shaders.push_back(shadow_shader);
 }
 
 void Engine::Init() {
@@ -44,9 +48,6 @@ void Engine::Init() {
 		engine->window.height = height;
 
 		engine->level->main_cam->UpdateProjection(width, height);
-		for (std::shared_ptr<Camera> camera : engine->level->cameras) {
-			camera->UpdateProjection(width, height);
-		}
 
 		EventHandler::size_callback(window, width, height);
 	});
@@ -58,21 +59,24 @@ void Engine::Init() {
 	}
 }
 
+void Engine::Update_Shaders() {
+	if (Engine::engine_active_shader == nullptr)
+		return;
+
+	Engine::engine_active_shader->setValue("viewPos", Engine::level->main_cam->transform->position);
+	Engine::engine_active_shader->setValue("view", Engine::level->main_cam->view);
+	Engine::engine_active_shader->setValue("farPlane", Engine::level->main_cam->far_plane);
+	Engine::engine_active_shader->setValue("time", static_cast<float>(STime::time));
+}
+
 void Engine::DefaultPreRender() {
-	glCullFace(GL_FRONT);
-	for (std::shared_ptr<ShadowMapTexture> shadowMap : Engine::level->shadows) {
-		Core::Engine->shadow_shader->Activate();
-		Core::Engine->shadow_shader->setValue("lightSpaceMatrix", shadowMap->GetRenderCam()->GetPVMatrix());
-		shadowMap->Render(5);
-	}
-	glCullFace(GL_BACK);
+	// Update Shadows
+	Engine::Tick();
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	level->Render();
-
-	Engine::Tick();
 }
 
 void Engine::DefaultPostRender() {
@@ -81,5 +85,7 @@ void Engine::DefaultPostRender() {
 
 void Engine::Tick()
 {
+	Engine::Update_Shaders();
+	Engine::level->Update();
 	STime::UpdateTime(static_cast<float>(glfwGetTime()));
 }

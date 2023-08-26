@@ -12,6 +12,7 @@
 #include <fstream>
 #include <sstream>
 #include <functional>
+#include <filesystem>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

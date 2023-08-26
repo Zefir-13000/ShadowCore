@@ -4,7 +4,7 @@
 
 namespace SC {
 
-    class Shader {
+    class Shader : public std::enable_shared_from_this<Shader> {
     public:
         GLuint ID;
         Shader(_In_ std::string name);

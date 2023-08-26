@@ -3,6 +3,7 @@
 #include "Object/Mesh.h"
 #include "Object/Camera.h"
 #include "Common/Material.h"
+#include "Object/Light.h"
 
 namespace SC {
 
@@ -18,21 +19,18 @@ namespace SC {
 			Level::objects.push_back(object);
 			return object;
 		}
-
-		void Add_Shadow(std::shared_ptr<Camera> _render_cam, uint32_t _shadow_size = 512); // TODO: Rename to Add_ShadowCascade after implementing cascade shadow maps
 		void Destroy_Object(std::shared_ptr<Object> object);
 
 		void Render();
 		void Render(std::shared_ptr<Shader> _render_shader);
 
+		void Update();
+
 		std::string level_name = "Level";
 		std::vector<std::shared_ptr<Object>> objects = {};
 		std::vector<std::shared_ptr<Object>> temp_objects = {};
-		std::vector<std::shared_ptr<Camera>> cameras = {};
-		std::vector<std::shared_ptr<Material>> materials = {};
+		std::vector<std::shared_ptr<Light>> lights = {};
 		std::shared_ptr<Camera> main_cam;
-
-		std::vector < std::shared_ptr<ShadowMapTexture>> shadows = {};
 	};
 
 };

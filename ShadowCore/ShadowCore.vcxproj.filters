@@ -45,9 +45,6 @@
     <ClCompile Include="Common\Material.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Object\Light.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="Ray.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -95,6 +92,12 @@
     </ClCompile>
     <ClCompile Include="Libraries\Include\imgui\imgui_widgets.cpp">
       <Filter>Исходные файлы\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\ShadowMap.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Object\Light.cpp">
+      <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +192,9 @@
       <Filter>Исходные файлы\imgui</Filter>
     </ClInclude>
     <ClInclude Include="Helper\ModelLoading.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Object\ShadowMap.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
