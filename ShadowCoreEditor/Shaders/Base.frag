@@ -55,7 +55,7 @@ float SampleShadowMap(vec2 coords, float compare, int cascadeIndex)
         return 1.0;
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(-light.direction); // light.position - FragPos
-    float bias = max(0.0005 * (1.0 - dot(norm, lightDir)), 0.00005);
+    float bias = max(0.001 * (1.0 - dot(norm, lightDir)), 0.0001);
     const float biasModifier = 0.5f;
     if (cascadeIndex == cascadeCount)
     {
